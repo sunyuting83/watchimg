@@ -1,0 +1,62 @@
+del(url) {
+  // console.log(url)
+  this.DelData(url)
+},
+async DelData(img){
+  const url = `${rootUrl}/api/delone`
+  const data = await this.delData(url,img)
+  if (data.status === 0) {
+    let d = this.list
+    d.data.forEach((element)=> {
+      element.images = element.images.filter((image) => {
+        return image.imgurl !== img
+      })
+    })
+  }
+},
+delData(url,img) {
+  let formData = new FormData()
+  formData.append('path', img)
+  let requestConfig = {
+    method: 'DELETE',
+    body: formData,
+    headers: {
+      Accept: '*/*'
+    }
+  }
+  return new Promise((resolve) => {
+    fetch(url, requestConfig)
+      .then(res => {
+        if(res.ok) {
+          return res.blob()
+        }else {
+          resolve({
+            status: 1,
+            message: res.status
+          })
+        }
+      })
+      .then(blob => {
+        var reader = new FileReader();
+        reader.onload = function () {
+          var text = reader.result;
+          // console.log(pages)
+          // const json = makeData(pages, text)
+          resolve(JSON.parse(text))
+        }
+        reader.readAsText(blob, 'UTF-8')
+      })
+      .catch((err) => {
+        resolve({
+          status: 1,
+          message: err.message
+        })
+      })
+  })
+},
+tdCssStyle(color) {
+  const [r, g, b, a] = color;
+  return {
+    background: `rgba(${r},${g},${b},${a})`
+  };
+},
