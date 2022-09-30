@@ -5,7 +5,6 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"mime/multipart"
 	"net/http"
 	"os"
@@ -15,7 +14,7 @@ import (
 	"worldimg/Client/utils"
 )
 
-func postFile(filename string, confYaml *utils.Config) error {
+func postFile(filename string, confYaml *utils.Config) {
 	bodyBuf := &bytes.Buffer{}
 	bodyWriter := multipart.NewWriter(bodyBuf)
 	bodyWriter.WriteField("code", confYaml.Code)
@@ -23,13 +22,15 @@ func postFile(filename string, confYaml *utils.Config) error {
 	fileWriter, err := bodyWriter.CreateFormFile("upload", filename)
 	if err != nil {
 		fmt.Println("error writing to buffer")
-		return err
+		time.Sleep(time.Duration(3) * time.Second)
+		postFile(filename, confYaml)
 	}
 
 	fh, err := os.Open(filename)
 	if err != nil {
 		fmt.Println("error opening file")
-		return err
+		time.Sleep(time.Duration(3) * time.Second)
+		postFile(filename, confYaml)
 	}
 	defer fh.Close()
 
@@ -37,7 +38,8 @@ func postFile(filename string, confYaml *utils.Config) error {
 	_, errs := io.Copy(fileWriter, fh)
 	if errs != nil {
 		// fmt.Println(err)
-		return errs
+		time.Sleep(time.Duration(3) * time.Second)
+		postFile(filename, confYaml)
 	}
 
 	contentType := bodyWriter.FormDataContentType()
@@ -46,12 +48,13 @@ func postFile(filename string, confYaml *utils.Config) error {
 	resp, err := http.Post(confYaml.Host, contentType, bodyBuf)
 	if err != nil {
 		// fmt.Println(err)
-		return err
+		time.Sleep(time.Duration(10) * time.Second)
+		postFile(filename, confYaml)
 	}
 	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
-	fmt.Println(string(body))
-	return nil
+	// body, err := ioutil.ReadAll(resp.Body)
+	// fmt.Println(string(body))
+	// return nil
 }
 
 // sample usage
