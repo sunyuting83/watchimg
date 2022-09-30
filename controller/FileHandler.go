@@ -67,6 +67,9 @@ func FileHandler(c *gin.Context) {
 	if len(gold) == 0 {
 		gold = "0"
 	}
+	if strings.Contains(gold, "\n") {
+		gold = "0"
+	}
 	fileName := header.Filename
 	if strings.Contains(header.Filename, `\`) {
 		nameList := strings.Split(header.Filename, `\`)
