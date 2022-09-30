@@ -54,7 +54,7 @@ func FileHandler(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusOK, gin.H{
 			"status":  0,
-			"message": "上传文件失败",
+			"message": "1上传文件失败",
 		})
 		return
 	}
@@ -86,7 +86,7 @@ func FileHandler(c *gin.Context) {
 		if err != nil {
 			c.JSON(http.StatusOK, gin.H{
 				"status":  0,
-				"message": "上传文件失败",
+				"message": "2上传文件失败",
 			})
 			return
 		}
@@ -106,7 +106,7 @@ func FileHandler(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusOK, gin.H{
 			"status":  0,
-			"message": "上传文件失败",
+			"message": "3上传文件失败",
 		})
 		return
 	}

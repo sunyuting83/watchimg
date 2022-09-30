@@ -2,9 +2,11 @@ package main
 
 import (
 	"bytes"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"mime/multipart"
 	"net/http"
 	"os"
@@ -14,12 +16,17 @@ import (
 	"worldimg/Client/utils"
 )
 
+type Status struct {
+	Status  int    `json:"status"`
+	Message string `json:"message"`
+}
+
 func postFile(filename string, confYaml *utils.Config) {
 	bodyBuf := &bytes.Buffer{}
 	bodyWriter := multipart.NewWriter(bodyBuf)
 	bodyWriter.WriteField("code", confYaml.Code)
 	bodyWriter.WriteField("computname", confYaml.ComputName)
-	fileWriter, err := bodyWriter.CreateFormFile("upload", filename)
+	fileWriter, err := bodyWriter.CreateFormFile("image", filename)
 	if err != nil {
 		fmt.Println("error writing to buffer")
 		time.Sleep(time.Duration(3) * time.Second)
@@ -52,8 +59,14 @@ func postFile(filename string, confYaml *utils.Config) {
 		postFile(filename, confYaml)
 	}
 	defer resp.Body.Close()
-	// body, err := ioutil.ReadAll(resp.Body)
-	// fmt.Println(string(body))
+	body, err := ioutil.ReadAll(resp.Body)
+	var m *Status
+	json.Unmarshal(body, &m)
+	// fmt.Println(m.Status)
+	if m.Status != 1 {
+		time.Sleep(time.Duration(10) * time.Second)
+		postFile(filename, confYaml)
+	}
 	// return nil
 }
 
