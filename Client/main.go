@@ -62,7 +62,7 @@ func postFile(filename string, confYaml *utils.Config) {
 	body, err := ioutil.ReadAll(resp.Body)
 	var m *Status
 	json.Unmarshal(body, &m)
-	// fmt.Println(m.Status)
+	fmt.Println(m.Status)
 	if m.Status != 1 {
 		time.Sleep(time.Duration(10) * time.Second)
 		postFile(filename, confYaml)
