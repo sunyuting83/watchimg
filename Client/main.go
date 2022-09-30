@@ -28,25 +28,19 @@ func postFile(filename string, confYaml *utils.Config) {
 	bodyWriter.WriteField("computname", confYaml.ComputName)
 	fileWriter, err := bodyWriter.CreateFormFile("image", filename)
 	if err != nil {
-		fmt.Println("error writing to buffer")
-		time.Sleep(time.Duration(3) * time.Second)
-		postFile(filename, confYaml)
+		fmt.Println("0")
 	}
 
 	fh, err := os.Open(filename)
 	if err != nil {
-		fmt.Println("error opening file")
-		time.Sleep(time.Duration(3) * time.Second)
-		postFile(filename, confYaml)
+		fmt.Println("0")
 	}
 	defer fh.Close()
 
 	//iocopy
 	_, errs := io.Copy(fileWriter, fh)
 	if errs != nil {
-		// fmt.Println(err)
-		time.Sleep(time.Duration(3) * time.Second)
-		postFile(filename, confYaml)
+		fmt.Println("0")
 	}
 
 	contentType := bodyWriter.FormDataContentType()
@@ -54,18 +48,17 @@ func postFile(filename string, confYaml *utils.Config) {
 
 	resp, err := http.Post(confYaml.Host, contentType, bodyBuf)
 	if err != nil {
-		// fmt.Println(err)
-		time.Sleep(time.Duration(10) * time.Second)
-		postFile(filename, confYaml)
+		fmt.Println("0")
 	}
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	var m *Status
 	json.Unmarshal(body, &m)
-	fmt.Println(m.Status)
+	// fmt.Println(m.Status)
 	if m.Status != 1 {
-		time.Sleep(time.Duration(10) * time.Second)
-		postFile(filename, confYaml)
+		fmt.Println("0")
+	} else {
+		fmt.Println("1")
 	}
 	// return nil
 }

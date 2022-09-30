@@ -14,15 +14,14 @@
         </div>
       </div>
       <div v-else>
-      <div class="container" v-if="list.data !== null && list.data.length > 0">
-        <div class="content" v-for="(item,index) in list.data" :key="index">
-          <h3>{{ item.comput }}</h3>
-          <div class="container is-mobile" v-for="(i,im) in item.data" :key="im">
-            <h4>{{im}}</h4>
+      <div class="container" v-if="list !== null">
+        <div class="content" v-for="(key,index) in list" :key="key">
+          <h4>{{index}}</h4>
+          <div class="container is-mobile">
             <div class="table-container">
               <table class="table is-hoverable is-fullwidth">
                 <tbody>
-                  <tr v-for="(ix,imx) in i" :key="imx">
+                  <tr v-for="(ix,imx) in key" :key="imx">
                     <td @mouseover="setBackage(true,ix.imgurl)" @mouseout="setBackage(false,'')">{{ix.title}}</td>
                     <td>{{ix.gold}}亿</td>
                     <td><img class="thisimg" :src="rootUrl + ix.imgurl" /></td>
@@ -74,8 +73,11 @@
       },
       async GetData(){
         const url = `${rootUrl}/api/data`
-        const data = await this.getData(url)
-        this.list = data
+        let data = await this.getData(url)
+        
+        // console.log(data)
+        let a = this.json_sort(data)
+        this.list = a
       },
       check(){
         let key = localStorage.getItem("code")
@@ -87,6 +89,23 @@
         }else{
           this.error = true
         }
+      },
+      json_sort(data){
+        data = data || '{}';
+        let arr = [];
+        for (var key in data) {
+          arr.push(key)
+        }
+        arr.reverse();
+        let str = '{';
+        for (var i in arr) {
+          const d = JSON.stringify(data[arr[i]])
+          str += '"' + arr[i] + '":' + d + ','
+        }
+        str = str.substr(0, str.length - 1)
+        str += '}'
+        str = JSON.parse(str);
+        return str;
       },
       getData(url){
         let requestConfig = {
