@@ -66,8 +66,13 @@ func GetData(c *gin.Context) {
 				)
 				if strings.Contains(titleAndGold, "_") {
 					titleList = strings.Split(titleAndGold, "_")
+					titleLen := len(titleList)
 					title = titleList[0]
-					gold = titleList[1]
+					gold = titleList[titleLen-1]
+				}
+				if len(gold) >= 8 {
+					l := len(gold) - 8
+					gold = gold[0:l]
 				}
 				if len(title) > 0 {
 					file := strings.Join([]string{item, titleD}, LinkPathStr)

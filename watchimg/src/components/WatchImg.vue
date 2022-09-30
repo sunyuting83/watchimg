@@ -24,6 +24,8 @@
                 <tbody>
                   <tr v-for="(ix,imx) in i" :key="imx">
                     <td @mouseover="setBackage(true,ix.imgurl)" @mouseout="setBackage(false,'')">{{ix.title}}</td>
+                    <td>{{ix.gold}}亿</td>
+                    <td><img class="thisimg" :src="rootUrl + ix.imgurl" /></td>
                   </tr>
                 </tbody>
               </table>
@@ -39,7 +41,6 @@
 
 <script>
   const rootUrl = "http://127.0.0.1:13002"
-  const vgh8MOC = "avcTd$auZFNJ"
   export default {
     name: 'WatchImg',
     data(){
@@ -52,12 +53,13 @@
         hover: false,
         hidden: false,
         code: '',
-        error: false
+        error: false,
+        vgh8MOC: "avcTd$auZFNJ"
       }
     },
     created(){
       let key = localStorage.getItem("code")
-      if(key === vgh8MOC) {
+      if(key === this.vgh8MOC) {
         this.GetData()
         this.hidden = true
         this.error = false
@@ -77,11 +79,11 @@
       },
       check(){
         let key = localStorage.getItem("code")
-        if (this.code === vgh8MOC) {
+        if (this.code === this.vgh8MOC) {
           this.GetData()
           this.hidden = true
           this.error = false
-          if (key === null) localStorage.setItem("code", vgh8MOC)
+          if (key === null) localStorage.setItem("code", this.vgh8MOC)
         }else{
           this.error = true
         }
@@ -135,5 +137,11 @@
   max-width: 752px;
   width: 752px;
 }
-
+.thisimg {
+  width: 150px;
+  height: 30px;
+  max-width: 150px;
+  max-height: 30px;
+  display: block;
+}
 </style>
