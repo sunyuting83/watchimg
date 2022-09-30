@@ -1,12 +1,13 @@
 package controller
 
 import (
-	"io"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"runtime"
 	"strings"
 
+	ocr "worldimg/OCR"
 	"worldimg/utils"
 
 	"github.com/gin-gonic/gin"
@@ -50,7 +51,6 @@ func FileHandler(c *gin.Context) {
 	}
 
 	file, header, err := c.Request.FormFile("image")
-	// fmt.Println(file)
 	if err != nil {
 		c.JSON(http.StatusOK, gin.H{
 			"status":  0,
@@ -58,14 +58,28 @@ func FileHandler(c *gin.Context) {
 		})
 		return
 	}
+
+	b, _ := ioutil.ReadAll(file)
+	gold := GetWord(b)
+	gold = strings.Replace(gold, " ", "", -1)
+	gold = strings.Replace(gold, "'", "", -1)
+	gold = strings.Replace(gold, ",", "", -1)
+	if len(gold) == 0 {
+		gold = "0"
+	}
 	fileName := header.Filename
 	if strings.Contains(header.Filename, `\`) {
 		nameList := strings.Split(header.Filename, `\`)
 		Length := len(nameList) - 1
 		fileName = nameList[Length]
 	}
+	fileNameList := strings.Split(fileName, ".")
+	fileName = strings.Join([]string{fileNameList[0], "_", gold, ".", fileNameList[1]}, "")
 	Path := strings.Join([]string{"upimg", form.Code}, SplitString)
+	// fmt.Println(Path)
 	imgPath := strings.Join([]string{Path, fileName}, SplitString)
+	// fmt.Println(imgPath)
+	// fmt.Println(gold)
 	check := utils.IsExist(Path)
 	if !check {
 		err := os.MkdirAll(Path, 0766)
@@ -88,16 +102,7 @@ func FileHandler(c *gin.Context) {
 		os.Create(cName)
 		os.WriteFile(cName, []byte(form.ComputName), 0644)
 	}
-	out, err := os.Create(imgPath)
-	if err != nil {
-		c.JSON(http.StatusOK, gin.H{
-			"status":  0,
-			"message": "上传文件失败",
-		})
-		return
-	}
-	defer out.Close()
-	_, err = io.Copy(out, file)
+	err = os.WriteFile(imgPath, b, 0644)
 	if err != nil {
 		c.JSON(http.StatusOK, gin.H{
 			"status":  0,
@@ -109,4 +114,14 @@ func FileHandler(c *gin.Context) {
 		"status":  1,
 		"message": "上传文件成功",
 	})
+}
+
+func GetWord(b []byte) string {
+	// client.SetImage("/home/sun/Pictures/photo_2022-09-26_01-32-46.jpg")
+	ocr.Client.SetImageFromBytes(b)
+	text, err := ocr.Client.Text()
+	if err != nil {
+		return "0"
+	}
+	return text
 }

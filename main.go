@@ -6,6 +6,7 @@ import (
 	"runtime"
 	"strings"
 	"time"
+	ocr "worldimg/OCR"
 	"worldimg/router"
 	"worldimg/utils"
 
@@ -23,6 +24,7 @@ func main() {
 		os.Exit(0)
 	}
 	gin.SetMode(gin.ReleaseMode)
+	defer ocr.Client.Close()
 	app := router.InitRouter(confYaml.SECRET_KEY)
 
 	app.Run(strings.Join([]string{":", confYaml.Port}, ""))

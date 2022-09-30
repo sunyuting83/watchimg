@@ -6,7 +6,10 @@ import (
 	"os"
 	"path"
 	"runtime"
+	"sort"
+	"strconv"
 	"strings"
+	"time"
 	"worldimg/utils"
 
 	"github.com/gin-gonic/gin"
@@ -24,6 +27,7 @@ type List struct {
 type Images struct {
 	Title  string `json:"title"`
 	ImgURL string `json:"imgurl"`
+	Gold   string `json:"gold"`
 }
 
 func GetData(c *gin.Context) {
@@ -53,18 +57,35 @@ func GetData(c *gin.Context) {
 				titlePath := strings.Split(it, LinkPathStr)
 				titleLen := len(titlePath) - 1
 				titleD := titlePath[titleLen]
-				title := strings.Split(titleD, ".")[0]
+				titleAndGold := strings.Split(titleD, ".")[0]
+
+				var (
+					titleList []string
+					title     string = titleAndGold
+					gold      string = "0"
+				)
+				if strings.Contains(titleAndGold, "_") {
+					titleList = strings.Split(titleAndGold, "_")
+					title = titleList[0]
+					gold = titleList[1]
+				}
 				if len(title) > 0 {
 					file := strings.Join([]string{item, titleD}, LinkPathStr)
 					fileInfo, _ := os.Stat(file)
 					modTime := fileInfo.ModTime()
 					day := modTime.Format("2006-01-02")
 					if day == v {
-						ddd := Images{Title: title, ImgURL: it}
+						ddd := Images{Title: title, ImgURL: it, Gold: gold}
 						imgList = append(imgList, ddd)
 					}
 				}
 			}
+			sort.Slice(imgList, func(i, j int) bool {
+				iInt, _ := strconv.ParseInt(imgList[i].Gold, 10, 64)
+				jInt, _ := strconv.ParseInt(imgList[j].Gold, 10, 64)
+				return iInt > jInt
+			})
+			// fmt.Println(imgList)
 			m[v] = imgList
 		}
 		// fmt.Println(m)
@@ -78,7 +99,7 @@ func GetData(c *gin.Context) {
 }
 
 func makeDateList(img []string, item, LinkPathStr string) []string {
-	var imgList []string
+	var imgList []time.Time
 	for _, it := range img {
 		titlePath := strings.Split(it, LinkPathStr)
 		titleLen := len(titlePath) - 1
@@ -88,11 +109,20 @@ func makeDateList(img []string, item, LinkPathStr string) []string {
 			file := strings.Join([]string{item, titleD}, LinkPathStr)
 			fileInfo, _ := os.Stat(file)
 			modTime := fileInfo.ModTime()
-			day := modTime.Format("2006-01-02")
-			imgList = append(imgList, day)
+			// day := modTime.Format("2006-01-02")
+			imgList = append(imgList, modTime)
 		}
 	}
-	return imgList
+	sort.Slice(imgList, func(i, j int) bool { return imgList[i].Before(imgList[j]) })
+	return TimeToString(imgList)
+}
+
+func TimeToString(imgList []time.Time) []string {
+	var a []string
+	for _, v := range imgList {
+		a = append(a, v.Format("2006-01-02"))
+	}
+	return a
 }
 
 func RemoveRepeatedElement(personList []string) (result []string) {
