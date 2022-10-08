@@ -10,5 +10,5 @@ var (
 
 func init() {
 	Client = gosseract.NewClient()
-	Client.SetWhitelist("0123456789")
+	Client.SetWhitelist("0123456789.")
 }

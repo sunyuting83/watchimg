@@ -6,8 +6,10 @@ import (
 	"os"
 	"runtime"
 	"strings"
+	"time"
 
 	ocr "worldimg/OCR"
+	"worldimg/database"
 	"worldimg/utils"
 
 	"github.com/gin-gonic/gin"
@@ -77,12 +79,16 @@ func FileHandler(c *gin.Context) {
 		fileName = nameList[Length]
 	}
 	fileNameList := strings.Split(fileName, ".")
-	fileName = strings.Join([]string{fileNameList[0], "_", gold, ".", fileNameList[1]}, "")
-	Path := strings.Join([]string{"upimg", form.Code}, SplitString)
+
+	nowTime := time.Now()
+	timeStr := nowTime.Format("20060102")
+	// fileName = strings.Join([]string{fileNameList[0], "_", gold, ".", fileNameList[1]}, "")
+	Path := strings.Join([]string{"upimg", timeStr}, SplitString)
 	// fmt.Println(Path)
 	imgPath := strings.Join([]string{Path, fileName}, SplitString)
+	toDBPath := strings.Join([]string{"/static", timeStr}, "/")
+	toDBPath = strings.Join([]string{toDBPath, fileName}, "/")
 	// fmt.Println(imgPath)
-	// fmt.Println(gold)
 	check := utils.IsExist(Path)
 	if !check {
 		err := os.MkdirAll(Path, 0766)
@@ -94,17 +100,6 @@ func FileHandler(c *gin.Context) {
 			return
 		}
 	}
-	cName := strings.Join([]string{Path, ".cname"}, SplitString)
-	checkName := utils.IsExist(cName)
-	if checkName {
-		old, _ := os.ReadFile(cName)
-		if string(old) != form.ComputName {
-			os.WriteFile(cName, []byte(form.ComputName), 0644)
-		}
-	} else {
-		os.Create(cName)
-		os.WriteFile(cName, []byte(form.ComputName), 0644)
-	}
 	err = os.WriteFile(imgPath, b, 0644)
 	if err != nil {
 		c.JSON(http.StatusOK, gin.H{
@@ -113,6 +108,26 @@ func FileHandler(c *gin.Context) {
 		})
 		return
 	}
+	newTime := nowTime.Unix()
+	var imglist database.ImgList
+	account, err := imglist.GetImgOne(fileNameList[0])
+	imglist.Account = fileNameList[0]
+	imglist.Cover = toDBPath
+	imglist.Today = gold
+	imglist.YesterDay = account.Today
+	imglist.DateTime = newTime
+	if err != nil {
+		if account.ID == 0 {
+			imglist.YesterDay = "0"
+			imglist.Insert()
+			c.JSON(http.StatusOK, gin.H{
+				"status":  1,
+				"message": "上传文件成功",
+			})
+			return
+		}
+	}
+	imglist.UpdateStatus(fileNameList[0])
 	c.JSON(http.StatusOK, gin.H{
 		"status":  1,
 		"message": "上传文件成功",

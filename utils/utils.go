@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"gopkg.in/yaml.v2"
@@ -121,4 +122,46 @@ func IsExist(path string) bool {
 	// 判断文件是否存在
 	_, err := os.Stat(path)
 	return err == nil || os.IsExist(err)
+}
+
+// GetDBPath get data file path
+func GetDBPath(t string, d bool) string {
+	var (
+		p   string
+		dir string
+	)
+	if d {
+		dir = "/home/sun/Works/go/worldimg"
+	} else {
+		path, err := os.Executable()
+		if err != nil {
+		}
+		dir = filepath.Dir(path)
+	}
+
+	p = "watchimg.sqlite"
+	return strings.Join([]string{dir, p}, "/")
+}
+
+func GetDateTime() (int64, int64, int64) {
+	d := time.Now()
+	date := d.Format("2006-01-02")
+	//获取当前时区
+	loc, _ := time.LoadLocation("Local")
+
+	//日期当天0点时间戳(拼接字符串)
+	startDate := date + "_00:00:00"
+	startTime, _ := time.ParseInLocation("2006-01-02_15:04:05", startDate, loc)
+
+	//日期当天23时59分时间戳
+	endDate := date + "_23:59:59"
+	end, _ := time.ParseInLocation("2006-01-02_15:04:05", endDate, loc)
+
+	yesterday := d.AddDate(0, 0, -1)
+	yday := yesterday.Format("2006-01-02")
+	yDate := yday + "_00:00:00"
+	yTime, _ := time.ParseInLocation("2006-01-02_15:04:05", yDate, loc)
+
+	//返回当天0点和23点59分的时间戳
+	return startTime.Unix(), end.Unix(), yTime.Unix()
 }

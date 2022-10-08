@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 	ocr "worldimg/OCR"
+	orm "worldimg/database"
 	"worldimg/router"
 	"worldimg/utils"
 
@@ -23,6 +24,7 @@ func main() {
 		time.Sleep(time.Duration(10) * time.Second)
 		os.Exit(0)
 	}
+	orm.InitDB(CurrentPath)
 	gin.SetMode(gin.ReleaseMode)
 	defer ocr.Client.Close()
 	app := router.InitRouter(confYaml.SECRET_KEY)
