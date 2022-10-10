@@ -16,9 +16,7 @@ import (
 
 // Node node
 type Node struct {
-	Code       string `form:"code" json:"code" xml:"code"  binding:"required"`
-	ComputName string `form:"computname" json:"computname" xml:"computname"  binding:"required"`
-	Gold       string `form:"gold" json:"gold" xml:"gold"  binding:"required"`
+	Gold string `form:"gold" json:"gold" xml:"gold"  binding:"required"`
 }
 
 func FileHandler(c *gin.Context) {
@@ -33,21 +31,6 @@ func FileHandler(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status":  1,
 			"message": err.Error(),
-		})
-		return
-	}
-
-	if len(form.Code) <= 0 {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"status":  1,
-			"message": "haven't node",
-		})
-		return
-	}
-	if len(form.ComputName) <= 0 {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"status":  1,
-			"message": "haven't node",
 		})
 		return
 	}
@@ -76,8 +59,17 @@ func FileHandler(c *gin.Context) {
 	// if len(gold) == 0 {
 	// 	gold = "0"
 	// }
-	// if strings.Contains(gold, "\n") {
-	// 	gold = "0"
+	// var gold int64
+	// if strings.Contains(form.Gold, "亿") {
+	// 	glan := len(form.Gold)
+	// 	goldstr := form.Gold[: glan - 1]
+	// 	if strings.Contains(form.Code, ".") {
+	// 		n, _ := strconv.ParseFloat(goldstr, 64)
+	// 		s := n * 100000000
+	// 	}else {
+	// 		n, _ := strconv.ParseInt(goldstr, 10, 64)
+	// 		gold = n * 100000000
+	// 	}
 	// }
 	fileName := header.Filename
 	if strings.Contains(header.Filename, `\`) {
