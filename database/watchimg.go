@@ -5,8 +5,8 @@ type ImgList struct {
 	ID        int64  `json:"id" gorm:"primary_key, column:id"`
 	Account   string `json:"account" gorm:"varchar(128);index:idx_account_id;column:account"`
 	Cover     string `json:"cover" gorm:"column:cover"`
-	Today     string `json:"today" gorm:"column:today"`
-	YesterDay string `json:"yesterday" gorm:"column:yesterday"`
+	Today     int64  `json:"today" gorm:"column:today"`
+	YesterDay int64  `json:"yesterday" gorm:"column:yesterday"`
 	DateTime  int64  `json:"datetime" gorm:"column:datetime"`
 }
 

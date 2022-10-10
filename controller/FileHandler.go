@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 	"runtime"
+	"strconv"
 	"strings"
 	"time"
 
@@ -52,25 +53,40 @@ func FileHandler(c *gin.Context) {
 	}
 
 	b, _ := ioutil.ReadAll(file)
-	// gold := GetWord(b)
-	// gold = strings.Replace(gold, " ", "", -1)
-	// gold = strings.Replace(gold, "'", "", -1)
-	// gold = strings.Replace(gold, ",", "", -1)
-	// if len(gold) == 0 {
-	// 	gold = "0"
-	// }
-	// var gold int64
-	// if strings.Contains(form.Gold, "亿") {
-	// 	glan := len(form.Gold)
-	// 	goldstr := form.Gold[: glan - 1]
-	// 	if strings.Contains(form.Code, ".") {
-	// 		n, _ := strconv.ParseFloat(goldstr, 64)
-	// 		s := n * 100000000
-	// 	}else {
-	// 		n, _ := strconv.ParseInt(goldstr, 10, 64)
-	// 		gold = n * 100000000
-	// 	}
-	// }
+	/*
+		gold := GetWord(b)
+		gold = strings.Replace(gold, " ", "", -1)
+		gold = strings.Replace(gold, "'", "", -1)
+		gold = strings.Replace(gold, ",", "", -1)
+		if len(gold) == 0 {
+			gold = "0"
+		}
+	*/
+	var gold int64
+	if strings.Contains(form.Gold, "亿") {
+		glan := len(form.Gold)
+		goldstr := form.Gold[:glan-1]
+		if strings.Contains(form.Gold, ".") {
+			n, _ := strconv.ParseFloat(goldstr, 64)
+			s := n * 100000000.00
+			gold = int64(s)
+		} else {
+			n, _ := strconv.ParseInt(goldstr, 10, 64)
+			gold = n * 100000000
+		}
+	}
+	if strings.Contains(form.Gold, "万") {
+		glan := len(form.Gold)
+		goldstr := form.Gold[:glan-1]
+		if strings.Contains(form.Gold, ".") {
+			n, _ := strconv.ParseFloat(goldstr, 64)
+			s := n * 10000.00
+			gold = int64(s)
+		} else {
+			n, _ := strconv.ParseInt(goldstr, 10, 64)
+			gold = n * 10000
+		}
+	}
 	fileName := header.Filename
 	if strings.Contains(header.Filename, `\`) {
 		nameList := strings.Split(header.Filename, `\`)
@@ -112,12 +128,12 @@ func FileHandler(c *gin.Context) {
 	account, err := imglist.GetImgOne(fileNameList[0])
 	imglist.Account = fileNameList[0]
 	imglist.Cover = toDBPath
-	imglist.Today = form.Gold
+	imglist.Today = gold
 	imglist.YesterDay = account.Today
 	imglist.DateTime = newTime
 	if err != nil {
 		if account.ID == 0 {
-			imglist.YesterDay = "0"
+			imglist.YesterDay = 0
 			imglist.Insert()
 			c.JSON(http.StatusOK, gin.H{
 				"status":  1,
