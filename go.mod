@@ -3,9 +3,11 @@ module worldimg
 go 1.19
 
 require (
+	github.com/chai2010/webp v1.1.1
 	github.com/gin-gonic/gin v1.8.1
 	github.com/jinzhu/gorm v1.9.16
 	github.com/otiai10/gosseract/v2 v2.4.0
+	golang.org/x/image v0.0.0-20211028202545-6944b10bf410
 	gopkg.in/yaml.v2 v2.4.0
 )
 

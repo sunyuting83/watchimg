@@ -1,9 +1,7 @@
 package utils
 
 import (
-	"crypto/md5"
 	"errors"
-	"fmt"
 	"net"
 	"os"
 	"path/filepath"
@@ -13,9 +11,9 @@ import (
 )
 
 type Config struct {
-	Host       string `yaml:"Host"`
-	Code       string `yaml:"Code"`
-	ComputName string `yaml:"ComputName"`
+	Host string `yaml:"Host"`
+	// Code       string `yaml:"Code"`
+	// ComputName string `yaml:"ComputName"`
 }
 
 // CheckConfig check config
@@ -40,20 +38,22 @@ func CheckConfig(OS, CurrentPath string) (conf *Config, err error) {
 		config, _ := yaml.Marshal(&confYaml)
 		os.WriteFile(ConfigFile, config, 0644)
 	}
-	if len(confYaml.Code) <= 0 {
-		mac, _ := GetMACAddressAndIPAddress()
-		srcCode := md5.Sum([]byte(mac))
-		code := fmt.Sprintf("%x", srcCode)
-		confYaml.Code = string(code)
-		config, _ := yaml.Marshal(&confYaml)
-		os.WriteFile(ConfigFile, config, 0644)
-	}
-	if len(confYaml.ComputName) <= 0 {
-		mac, _ := GetMACAddressAndIPAddress()
-		confYaml.ComputName = string(mac)
-		config, _ := yaml.Marshal(&confYaml)
-		os.WriteFile(ConfigFile, config, 0644)
-	}
+	/*
+		if len(confYaml.Code) <= 0 {
+			mac, _ := GetMACAddressAndIPAddress()
+			srcCode := md5.Sum([]byte(mac))
+			code := fmt.Sprintf("%x", srcCode)
+			confYaml.Code = string(code)
+			config, _ := yaml.Marshal(&confYaml)
+			os.WriteFile(ConfigFile, config, 0644)
+		}
+		if len(confYaml.ComputName) <= 0 {
+			mac, _ := GetMACAddressAndIPAddress()
+			confYaml.ComputName = string(mac)
+			config, _ := yaml.Marshal(&confYaml)
+			os.WriteFile(ConfigFile, config, 0644)
+		}
+	*/
 	return confYaml, nil
 }
 

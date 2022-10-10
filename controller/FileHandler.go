@@ -8,7 +8,6 @@ import (
 	"strings"
 	"time"
 
-	ocr "worldimg/OCR"
 	"worldimg/database"
 	"worldimg/utils"
 
@@ -19,6 +18,7 @@ import (
 type Node struct {
 	Code       string `form:"code" json:"code" xml:"code"  binding:"required"`
 	ComputName string `form:"computname" json:"computname" xml:"computname"  binding:"required"`
+	Gold       string `form:"gold" json:"gold" xml:"gold"  binding:"required"`
 }
 
 func FileHandler(c *gin.Context) {
@@ -51,6 +51,13 @@ func FileHandler(c *gin.Context) {
 		})
 		return
 	}
+	if len(form.Gold) <= 0 {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"status":  1,
+			"message": "haven't node",
+		})
+		return
+	}
 
 	file, header, err := c.Request.FormFile("image")
 	if err != nil {
@@ -62,16 +69,16 @@ func FileHandler(c *gin.Context) {
 	}
 
 	b, _ := ioutil.ReadAll(file)
-	gold := GetWord(b)
-	gold = strings.Replace(gold, " ", "", -1)
-	gold = strings.Replace(gold, "'", "", -1)
-	gold = strings.Replace(gold, ",", "", -1)
-	if len(gold) == 0 {
-		gold = "0"
-	}
-	if strings.Contains(gold, "\n") {
-		gold = "0"
-	}
+	// gold := GetWord(b)
+	// gold = strings.Replace(gold, " ", "", -1)
+	// gold = strings.Replace(gold, "'", "", -1)
+	// gold = strings.Replace(gold, ",", "", -1)
+	// if len(gold) == 0 {
+	// 	gold = "0"
+	// }
+	// if strings.Contains(gold, "\n") {
+	// 	gold = "0"
+	// }
 	fileName := header.Filename
 	if strings.Contains(header.Filename, `\`) {
 		nameList := strings.Split(header.Filename, `\`)
@@ -113,7 +120,7 @@ func FileHandler(c *gin.Context) {
 	account, err := imglist.GetImgOne(fileNameList[0])
 	imglist.Account = fileNameList[0]
 	imglist.Cover = toDBPath
-	imglist.Today = gold
+	imglist.Today = form.Gold
 	imglist.YesterDay = account.Today
 	imglist.DateTime = newTime
 	if err != nil {
@@ -134,12 +141,12 @@ func FileHandler(c *gin.Context) {
 	})
 }
 
-func GetWord(b []byte) string {
-	// client.SetImage("/home/sun/Pictures/photo_2022-09-26_01-32-46.jpg")
-	ocr.Client.SetImageFromBytes(b)
-	text, err := ocr.Client.Text()
-	if err != nil {
-		return "0"
-	}
-	return text
-}
+// func GetWord(b []byte) string {
+// 	// client.SetImage("/home/sun/Pictures/photo_2022-09-26_01-32-46.jpg")
+// 	ocr.Client.SetImageFromBytes(b)
+// 	text, err := ocr.Client.Text()
+// 	if err != nil {
+// 		return "0"
+// 	}
+// 	return text
+// }

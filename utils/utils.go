@@ -124,25 +124,6 @@ func IsExist(path string) bool {
 	return err == nil || os.IsExist(err)
 }
 
-// GetDBPath get data file path
-func GetDBPath(t string, d bool) string {
-	var (
-		p   string
-		dir string
-	)
-	if d {
-		dir = "/home/sun/Works/go/worldimg"
-	} else {
-		path, err := os.Executable()
-		if err != nil {
-		}
-		dir = filepath.Dir(path)
-	}
-
-	p = "watchimg.sqlite"
-	return strings.Join([]string{dir, p}, "/")
-}
-
 func GetDateTime() (int64, int64, int64) {
 	d := time.Now()
 	date := d.Format("2006-01-02")
