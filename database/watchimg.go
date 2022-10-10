@@ -23,6 +23,14 @@ func (imglist *ImgList) GetImgOne(account string) (imglists ImgList, err error) 
 	return
 }
 
+// GetCount 列表
+func (imglist *ImgList) GetCount() (count int64, err error) {
+	if err = Eloquent.Model(&imglist).Count(&count).Error; err != nil {
+		return
+	}
+	return
+}
+
 // GetImgList 列表
 func (imglist *ImgList) GetImgList(page int64) (imglists []ImgList, err error) {
 	p := makePage(page)
