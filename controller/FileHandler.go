@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -62,31 +63,45 @@ func FileHandler(c *gin.Context) {
 			gold = "0"
 		}
 	*/
+	// fmt.Println(form.Gold)
 	var gold int64
 	if strings.Contains(form.Gold, "亿") {
-		glan := len(form.Gold)
-		goldstr := form.Gold[:glan-1]
+		gx := strings.Split(form.Gold, "亿")
+		goldstr := gx[0]
 		if strings.Contains(form.Gold, ".") {
-			n, _ := strconv.ParseFloat(goldstr, 64)
-			s := n * 100000000.00
-			gold = int64(s)
+			g := strings.Split(goldstr, ".")
+			// fmt.Println(g)
+			goldstr = strings.Join([]string{g[0], g[1]}, "")
+			// fmt.Println(goldstr)
+			var x int64 = 10000000
+			if len(g[1]) >= 2 {
+				x = 1000000
+			}
+			n, _ := strconv.ParseInt(goldstr, 10, 64)
+			// fmt.Println(n)
+			// s := n * x
+			gold = n * x
+			// fmt.Println("yi1")
+			// fmt.Println(gold)
 		} else {
+			fmt.Println(goldstr)
 			n, _ := strconv.ParseInt(goldstr, 10, 64)
 			gold = n * 100000000
+			// fmt.Println("yi2")
+			// fmt.Println(gold)
 		}
+	} else if strings.Contains(form.Gold, "万") {
+		gx := strings.Split(form.Gold, "万")
+		goldstr := gx[0]
+		n, _ := strconv.ParseInt(goldstr, 10, 64)
+		gold = n * 10000
+		// fmt.Println("wan2")
+		// fmt.Println(gold)
+	} else {
+		n, _ := strconv.ParseInt(form.Gold, 10, 64)
+		gold = n
 	}
-	if strings.Contains(form.Gold, "万") {
-		glan := len(form.Gold)
-		goldstr := form.Gold[:glan-1]
-		if strings.Contains(form.Gold, ".") {
-			n, _ := strconv.ParseFloat(goldstr, 64)
-			s := n * 10000.00
-			gold = int64(s)
-		} else {
-			n, _ := strconv.ParseInt(goldstr, 10, 64)
-			gold = n * 10000
-		}
-	}
+	// fmt.Println(gold)
 	fileName := header.Filename
 	if strings.Contains(header.Filename, `\`) {
 		nameList := strings.Split(header.Filename, `\`)
