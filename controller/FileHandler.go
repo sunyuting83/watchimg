@@ -144,7 +144,14 @@ func FileHandler(c *gin.Context) {
 	imglist.Account = fileNameList[0]
 	imglist.Cover = toDBPath
 	imglist.Today = gold
-	imglist.YesterDay = account.Today
+
+	timeobj := time.Unix(int64(account.DateTime), 0)
+	olDate := timeobj.Format("20060102")
+
+	if timeStr > olDate {
+		imglist.YesterDay = account.Today
+	}
+
 	imglist.DateTime = newTime
 	if err != nil {
 		if account.ID == 0 {
