@@ -22,8 +22,8 @@
                 <thead>
                   <tr>
                     <td>帐号</td>
-                    <td>当前金币</td>
-                    <td>上次金币</td>
+                    <td>今日金币</td>
+                    <td>昨日金币</td>
                     <td>金币截图</td>
                     <td>日期</td>
                   </tr>
