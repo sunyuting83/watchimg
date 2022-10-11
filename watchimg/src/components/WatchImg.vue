@@ -14,23 +14,42 @@
         </div>
       </div>
       <div v-else>
-      <div class="container" v-if="list !== null">
-        <div class="content" v-for="(key,index) in list" :key="key">
-          <h4>{{index}}</h4>
+      <div class="container" v-if="list !== null && list.length > 0 && status === 1">
+        <div class="content">
           <div class="container is-mobile">
             <div class="table-container">
               <table class="table is-hoverable is-fullwidth">
+                <thead>
+                  <tr>
+                    <td>帐号</td>
+                    <td>当前金币</td>
+                    <td>上次金币</td>
+                    <td>金币截图</td>
+                    <td>日期</td>
+                  </tr>
+                </thead>
                 <tbody>
-                  <tr v-for="(ix,imx) in key" :key="imx">
-                    <td @mouseover="setBackage(true,ix.imgurl)" @mouseout="setBackage(false,'')">{{ix.title}}</td>
-                    <td>{{ix.gold}}亿</td>
-                    <td><img class="thisimg" :src="rootUrl + ix.imgurl" /></td>
+                  <tr v-for="(item) in list" :key="item.id">
+                    <td @mouseover="setBackage(true,item.cover)" @mouseout="setBackage(false,'')">{{item.account}}</td>
+                    <td>{{makeNumber(item.today)}}</td>
+                    <td>{{makeNumber(item.yesterday)}}</td>
+                    <td><img class="thisimg" :src="rootUrl + item.cover" /></td>
+                    <td>{{FormatTime(item.datetime)}}</td>
                   </tr>
                 </tbody>
               </table>
             </div>
           </div>
           <hr />
+          <nav class="pagination" role="navigation" aria-label="pagination">
+            <a class="pagination-previous" @click="setPreviousPage" title="This is the first page" :disabled="current !== 1 && page.length > 1?'true':'false'">上一页</a>
+            <a class="pagination-next" @click="setNextPage" :disabled="current !== page.length && page.length > 1?'true':'false'">下一页</a>
+            <ul class="pagination-list">
+              <li v-for="(item) in page" :key="item">
+                <a class="pagination-link" @click="setPage(item)" :class="item === current ? 'is-current': ''" :aria-label="'Page '+item" :aria-current="item === current ? 'page': ''">{{item}}</a>
+              </li>
+            </ul>
+          </nav>
         </div>
       </div>
       <div class="is-img" :style="{top:hoverTop+'px'}" v-if="hover"><img :src="rootUrl + currentImg" /></div>
@@ -39,21 +58,23 @@
 </template>
 
 <script>
-  const rootUrl = "http://127.0.0.1:13002"
+  const rootUrl = "http://192.168.1.90:13002"
   export default {
     name: 'WatchImg',
     data(){
       return{
-        list: {
-          data:[]
-        },
+        list: [],
         rootUrl: rootUrl,
         currentImg: '',
         hover: false,
         hidden: false,
         code: '',
         error: false,
-        vgh8MOC: "avcTd$auZFNJ"
+        vgh8MOC: "avcTd$auZFNJ",
+        total: 0,
+        current: 1,
+        status: 0,
+        page:[]
       }
     },
     created(){
@@ -71,13 +92,61 @@
         let  scrollTop = document.documentElement.scrollTop || window.pageYOffset || document.body.scrollTop;
         this.hoverTop = scrollTop
       },
+      setPage(p){
+        if (p !== this.current && p >= 1) {
+          this.current = p
+          this.GetData()
+          // console.log(this.current)
+        }
+      },
+      setNextPage() {
+        if (this.current !== this.page.length) {
+          this.current = this.current + 1
+          this.GetData()
+          // console.log(this.current)
+        }
+      },
+      setPreviousPage(){
+        if (this.current > 1) {
+          this.current = this.current - 1
+          this.GetData()
+          // console.log(this.current)
+        }
+      },
+      makeNumber(n){
+        let x = "0"
+        if ((n+"").length >= 9 && n !== 0) {
+          const a = n / 100000000
+          x = `${a}亿`
+        }else if (n === 123) {
+          x = "识别错误"
+        }else{
+          if (n !== 0 ) {
+            const a = n / 10000
+            x = `${a}万`
+          }
+        }
+        return x
+      },
+      FormatTime(timestamp) {
+        var date = new Date(timestamp * 1000);
+        var Y = date.getFullYear() + '-'
+        var M = (date.getMonth()+1 < 10 ? '0'+(date.getMonth()+1) : date.getMonth()+1) + '-'
+        var D = date.getDate() + ' '
+        return Y+M+D
+      },
       async GetData(){
         const url = `${rootUrl}/api/data`
         let data = await this.getData(url)
         
         // console.log(data)
-        let a = this.json_sort(data)
-        this.list = a
+        if (data.status === 1) {
+          this.list = data.data
+          this.total = data.total
+          this.status = data.status
+          this.page = this.makePage(data.total)
+          // console.log(this.page)
+        }
       },
       check(){
         let key = localStorage.getItem("code")
@@ -90,22 +159,13 @@
           this.error = true
         }
       },
-      json_sort(data){
-        data = data || '{}';
-        let arr = [];
-        for (var key in data) {
-          arr.push(key)
+      makePage(t){
+        let x = []
+        const p = Math.ceil(t/100)
+        for (let i = 0; i < p; i++) {
+          x = [...x, i + 1]
         }
-        arr.reverse();
-        let str = '{';
-        for (var i in arr) {
-          const d = JSON.stringify(data[arr[i]])
-          str += '"' + arr[i] + '":' + d + ','
-        }
-        str = str.substr(0, str.length - 1)
-        str += '}'
-        str = JSON.parse(str);
-        return str;
+        return x
       },
       getData(url){
         let requestConfig = {
@@ -115,8 +175,10 @@
             'Content-type':'text/html;charset=UTF-8'
           }
         }
+        const page = this.current
+        const newUrl = `${url}?page=${page}`
         return new Promise((resolve) => {
-          fetch(url, requestConfig)
+          fetch(newUrl, requestConfig)
             .then(res => {
               if(res.ok) {
                 return res.blob()
