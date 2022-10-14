@@ -95,8 +95,8 @@ func DeleteOne(c *gin.Context) {
 		})
 		return
 	}
-	datalist := &database.ImgList{Account: form.Account}
-	err = datalist.DeleteOne()
+	var datalist database.ImgList
+	datalist.DeleteOne(form.Account)
 	if err != nil {
 		c.JSON(http.StatusOK, gin.H{
 			"status":  1,

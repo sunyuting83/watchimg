@@ -103,7 +103,7 @@
   import useClipboard from 'vue-clipboard3'
 
   const { toClipboard } = useClipboard()
-  const rootUrl = "http://116.204.121.132:13026"
+  const rootUrl = "http://192.168.1.90:13002"
   export default {
     name: 'WatchImg',
     data(){
