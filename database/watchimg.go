@@ -65,7 +65,7 @@ func (datalist *ImgList) UpdateStatus(account string) (update ImgList, err error
 // DeleteOne data
 func (datalist *ImgList) DeleteOne(account string) {
 	// time.Sleep(time.Duration(100) * time.Millisecond)
-	Eloquent.Where("account = ?", "account").Delete(&datalist)
+	Eloquent.Where("account = ?", account).Delete(&datalist)
 }
 
 // makePage make page
