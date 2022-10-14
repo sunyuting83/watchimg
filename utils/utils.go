@@ -2,12 +2,12 @@ package utils
 
 import (
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"math/rand"
 	"net/http"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"time"
 
@@ -20,24 +20,37 @@ type Config struct {
 	SECRET_KEY string `yaml:"SECRET_KEY"`
 }
 
-// Verification power;
-func Verification(c *gin.Context) {
-	Token, ok := c.GetQuery("token")
-	if ok {
-		if CheckToken(Token) {
+// VerifyMiddleware Verify middleware
+func VerifyMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		token := c.GetHeader("Authorization")
+		token = token[7:]
+		if CheckToken(token) {
 			c.Next()
 		} else {
 			c.AbortWithStatus(403)
 		}
-	} else {
-		c.AbortWithStatus(403)
 	}
 }
 
 // CheckToken is a check token function
 func CheckToken(a string) bool {
-	fmt.Println(a)
-	return true
+	OS := runtime.GOOS
+	LinkPathStr := "/"
+	if OS == "windows" {
+		LinkPathStr = "\\"
+	}
+	CurrentPath, _ := GetCurrentPath()
+
+	TokenFile := strings.Join([]string{CurrentPath, ".token"}, LinkPathStr)
+	tokenFile, err := ioutil.ReadFile(TokenFile)
+	if err != nil {
+		return false
+	}
+	if a == string(tokenFile) {
+		return true
+	}
+	return false
 }
 
 // GetCurrentPath Get Current Path
