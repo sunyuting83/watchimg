@@ -16,8 +16,8 @@ func InitRouter(SECRET_KEY string) *gin.Engine {
 	{
 		router.GET("/", controller.Index)
 		api.POST("/upimg", controller.FileHandler)
-		api.GET("/data", controller.GetData, utils.VerifyMiddleware())
-		api.DELETE("/delone", controller.DeleteOne, utils.VerifyMiddleware())
+		api.GET("/data", utils.VerifyMiddleware(), controller.GetData)
+		api.DELETE("/delone", utils.VerifyMiddleware(), controller.DeleteOne)
 		api.POST("/login", controller.FileHandler)
 		router.Static("/static", "./upimg")
 	}

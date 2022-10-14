@@ -24,9 +24,13 @@ type Config struct {
 func VerifyMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		token := c.GetHeader("Authorization")
-		token = token[7:]
-		if CheckToken(token) {
-			c.Next()
+		if len(token) > 0 {
+			token = token[7:]
+			if CheckToken(token) {
+				c.Next()
+			} else {
+				c.AbortWithStatus(403)
+			}
 		} else {
 			c.AbortWithStatus(403)
 		}
