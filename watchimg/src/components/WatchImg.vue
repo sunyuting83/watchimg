@@ -35,15 +35,23 @@
                     <td>昨日金币</td>
                     <td>金币截图</td>
                     <td>日期</td>
+                    <td>操作</td>
                   </tr>
                 </thead>
                 <tbody>
                   <tr v-for="(item) in list" :key="item.id">
-                    <td @mouseover="setBackage(true,item.cover)" @mouseout="setBackage(false,'')">{{item.account}}</td>
+                    <td>{{item.account}}</td>
                     <td>{{makeNumber(item.today)}}</td>
                     <td>{{makeNumber(item.yesterday)}}</td>
                     <td><img class="thisimg" :src="rootUrl + item.cover" /></td>
                     <td>{{FormatTime(item.datetime)}}</td>
+                    <td>
+                      <div class="buttons are-small">
+                        <button class="button is-info" @click="delit(item.account)">
+                          提取帐号
+                        </button>
+                      </div>
+                    </td>
                   </tr>
                 </tbody>
               </table>
@@ -61,12 +69,40 @@
           </nav>
         </div>
       </div>
-      <div class="is-img" :style="{top:hoverTop+'px'}" v-if="hover"><img :src="rootUrl + currentImg" /></div>
+    </div>
+
+    <div class="modal is-active" v-if="hasaccount">
+      <div class="modal-background"></div>
+      <div class="modal-card">
+        <header class="modal-card-head">
+          <p class="modal-card-title">帐号信息</p>
+          <button class="delete" aria-label="close" @click="closeMo"></button>
+        </header>
+        <section class="modal-card-body">
+          <p>帐号：{{account.accountgs}}</p>
+          <p>密码：{{account.password}}</p>
+        </section>
+        <footer class="modal-card-foot">
+          <button class="button is-success" @click="copyAccount">复制到剪切板</button>
+          <button class="button" @click="closeMo">关闭</button>
+        </footer>
+      </div>
+    </div>
+    <div class="notification is-danger error" :style="{top:hoverTop+'px'}" v-if="hover">
+      <button class="delete" @click="closErr"></button>
+      <p>删除帐号出错！</p>
+    </div>
+    <div class="notification is-success error" :style="{top:hoverTop+'px'}" v-if="ok">
+      <button class="delete" @click="closErr"></button>
+      <p>复制帐号成功</p>
     </div>
   </section>
 </template>
 
 <script>
+  import useClipboard from 'vue-clipboard3'
+
+  const { toClipboard } = useClipboard()
   const rootUrl = "http://192.168.1.90:13002"
   export default {
     name: 'WatchImg',
@@ -83,7 +119,11 @@
         total: 0,
         current: 1,
         status: 0,
-        page:[]
+        page:[],
+        hasaccount: false,
+        account: {},
+        atest: "",
+        ok: false
       }
     },
     created(){
@@ -95,11 +135,58 @@
       }
     },
     methods: {
-      setBackage(hover,img){
-        this.currentImg = img
-        this.hover = hover
+      async delit(account){
+        const url = `${rootUrl}/api/delone`
+        const data = await this.delData(url,account)
+        if (data.status == -1) {
+          this.list = []
+          this.total = 0
+          this.status = 0
+          this.page = []
+          localStorage.removeItem("token")
+          this.hidden = false
+        }else if (data.status == 1) {
+          this.openError()
+        }else {
+          if (data.data !== "{}") {
+            const x = JSON.parse(data.data)
+            const d = `${x.accountgs}----${x.password}----${x.other}`
+            this.account = x
+            this.atest = d
+            this.hasaccount = true
+          }else{
+            this.openError()
+          }
+        }
+      },
+      async copyAccount(){
+        const _this = this
+        await toClipboard(_this.atest)
+        this.onCopy()
+      },
+      openError(){
         let  scrollTop = document.documentElement.scrollTop || window.pageYOffset || document.body.scrollTop;
         this.hoverTop = scrollTop
+        this.hover = true
+        const _this = this
+        setTimeout(function(){
+          _this.hover = false
+        },10000)
+      },
+      closErr(){
+        this.hover = false
+      },
+      closeMo(){
+        this.ok = false
+      },
+      onCopy(){
+        let  scrollTop = document.documentElement.scrollTop || window.pageYOffset || document.body.scrollTop;
+        this.hoverTop = scrollTop
+        this.ok = true
+        const _this = this
+        setTimeout(function(){
+          _this.ok = false
+        },10000)
       },
       setPage(p){
         if (p !== this.current && p >= 1) {
@@ -281,24 +368,67 @@
               })
             })
         })
+      },
+      delData(url,account){
+        let key = localStorage.getItem("token")
+        const body = {
+          'account': account
+        }
+        
+        let requestConfig = {
+          method: 'DELETE',
+          body: JSON.stringify(body),
+          headers: {
+            Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${key}`,
+          }
+        }
+        return new Promise((resolve) => {
+          fetch(url, requestConfig)
+            .then(res => {
+              if(res.ok) {
+                return res.blob()
+              }else {
+                resolve({
+                  status: 1,
+                  message: res.status
+                })
+              }
+            })
+            .then(blob => {
+              var reader = new FileReader();
+              reader.onload = function () {
+                var text = reader.result;
+                // console.log(pages)
+                // const json = makeData(pages, text)
+                resolve(JSON.parse(text))
+              }
+              reader.readAsText(blob, 'UTF-8')
+            })
+            .catch((err) => {
+              resolve({
+                status: 1,
+                message: err.message
+              })
+            })
+        })
       }
     }
   }
 </script>
 <style scoped>
-.is-img {
-  position: absolute;
-  display: block;
-  right: 10px;
-  max-width: 752px;
-  width: 752px;
-}
 .thisimg {
   width: 150px;
   height: 30px;
   max-width: 150px;
   max-height: 30px;
   display: block;
+}
+.error {
+  position:absolute;
+  right: 0px;
+  width: 240px
 }
 .w350 {
   width: 350px;

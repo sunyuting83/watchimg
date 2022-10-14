@@ -2,7 +2,6 @@ package controller
 
 import (
 	"bytes"
-	"fmt"
 	"io/ioutil"
 	"mime/multipart"
 	"net/http"
@@ -72,6 +71,13 @@ func DeleteOne(c *gin.Context) {
 		return
 	}
 	token := c.GetHeader("Authorization")
+	if len(token) < 10 {
+		c.JSON(http.StatusOK, gin.H{
+			"status":  1,
+			"message": "提取失败6",
+		})
+		return
+	}
 	token = token[7:]
 	del := postIT(form.Account, CurrentPath, token, confYaml)
 	if del == "0" {
@@ -127,7 +133,7 @@ func postIT(account, CurrentPath, token string, confYaml *Config) string {
 		if err != nil {
 			return "0"
 		}
-		fmt.Println(string(body))
+		// fmt.Println(string(body))
 		return string(body)
 	} else {
 		return "1"
