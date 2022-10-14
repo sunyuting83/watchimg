@@ -24,7 +24,7 @@ type Config struct {
 func VerifyMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		token := c.GetHeader("Authorization")
-		if len(token) > 0 {
+		if len(token) > 10 {
 			token = token[7:]
 			if CheckToken(token) {
 				c.Next()

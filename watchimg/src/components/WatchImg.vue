@@ -1,17 +1,26 @@
 <template>
     <section class="section">
       <div class="container" v-if="!hidden">
-        <div class="field has-addons">
-          <div class="control">
-            <input class="input" type="text" placeholder="验证码" v-model="code">
+        <section class="container w350">
+          <div class="field">
+            <p class="control">
+              <input class="input" type="username" placeholder="用户名" v-model="username">
+            </p>
           </div>
-          <div class="control">
-            <a class="button is-info" @click="check">
-              确定
-            </a>
+          <div class="field">
+            <p class="control">
+              <input class="input" type="password" placeholder="密码" v-model="password">
+            </p>
+            <p class="help is-danger" v-if="error">登陆错误</p>
           </div>
-          <p class="help is-danger" v-if="error">验证码错误</p>
-        </div>
+          <div class="field">
+            <p class="control">
+              <button class="button is-success" @click="check">
+                登陆
+              </button>
+            </p>
+          </div>
+        </section>
       </div>
       <div v-else>
       <div class="container" v-if="list !== null && list.length > 0 && status === 1">
@@ -68,9 +77,9 @@
         currentImg: '',
         hover: false,
         hidden: false,
-        code: '',
+        username: '',
         error: false,
-        vgh8MOC: "avcTd$auZFNJ",
+        password: "",
         total: 0,
         current: 1,
         status: 0,
@@ -78,8 +87,8 @@
       }
     },
     created(){
-      let key = localStorage.getItem("code")
-      if(key === this.vgh8MOC) {
+      let key = localStorage.getItem("token")
+      if(key !== null) {
         this.GetData()
         this.hidden = true
         this.error = false
@@ -138,25 +147,45 @@
       async GetData(){
         const url = `${rootUrl}/api/data`
         let data = await this.getData(url)
-        
-        // console.log(data)
         if (data.status === 1) {
           this.list = data.data
           this.total = data.total
           this.status = data.status
           this.page = this.makePage(data.total)
           // console.log(this.page)
+        }else{
+          this.list = []
+          this.total = 0
+          this.status = 0
+          this.page = []
+          localStorage.removeItem("token")
+          this.hidden = false
         }
       },
-      check(){
-        let key = localStorage.getItem("code")
-        if (this.code === this.vgh8MOC) {
+      async check(){
+        let key = localStorage.getItem("token")
+        if (key === null) {
+          if (this.username.length > 0 && this.password.length > 0) {
+            const url = `${rootUrl}/api/login`
+            let data = await this.postData(url)
+            // console.log(data)
+            if (data.status == 1) {
+              this.error = true
+            }else {
+              this.token = data.token
+              localStorage.setItem("token", data.token)
+              this.GetData()
+              this.hidden = true
+              this.error = false
+            }
+          }else{
+            this.error = true
+          }
+          // localStorage.setItem("code", this.vgh8MOC)
+        }else{
           this.GetData()
           this.hidden = true
           this.error = false
-          if (key === null) localStorage.setItem("code", this.vgh8MOC)
-        }else{
-          this.error = true
         }
       },
       makePage(t){
@@ -168,17 +197,63 @@
         return x
       },
       getData(url){
+        let key = localStorage.getItem("token")
         let requestConfig = {
           method: 'get',
           headers: {
             Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-            'Content-type':'text/html;charset=UTF-8'
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${key}`,
           }
         }
         const page = this.current
         const newUrl = `${url}?page=${page}`
         return new Promise((resolve) => {
           fetch(newUrl, requestConfig)
+            .then(res => {
+              if(res.ok) {
+                return res.blob()
+              }else {
+                resolve({
+                  status: 0,
+                  message: res.status
+                })
+              }
+            })
+            .then(blob => {
+              var reader = new FileReader();
+              reader.onload = function () {
+                var text = reader.result;
+                // console.log(text)
+                // const json = makeData(pages, text)
+                resolve(JSON.parse(text))
+              }
+              reader.readAsText(blob, 'UTF-8')
+            })
+            .catch((err) => {
+              resolve({
+                status: 1,
+                message: err.message
+              })
+            })
+        })
+      },
+      postData(url){
+        const body = {
+          'username': this.username,
+          'password': this.password
+        }
+        
+        let requestConfig = {
+          method: 'POST',
+          body: JSON.stringify(body),
+          headers: {
+            Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+            'Content-Type': 'application/json'
+          }
+        }
+        return new Promise((resolve) => {
+          fetch(url, requestConfig)
             .then(res => {
               if(res.ok) {
                 return res.blob()
@@ -224,5 +299,9 @@
   max-width: 150px;
   max-height: 30px;
   display: block;
+}
+.w350 {
+  width: 350px;
+  margin-top: 30px
 }
 </style>
