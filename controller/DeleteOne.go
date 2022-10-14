@@ -2,6 +2,7 @@ package controller
 
 import (
 	"bytes"
+	"fmt"
 	"io/ioutil"
 	"mime/multipart"
 	"net/http"
@@ -16,7 +17,6 @@ import (
 // Node node
 type Account struct {
 	Account string `form:"account" json:"account" xml:"account"  binding:"required"`
-	Gameid  string `form:"gameid" json:"gameid" xml:"gameid"  binding:"required"`
 }
 
 func DeleteOne(c *gin.Context) {
@@ -51,7 +51,7 @@ func DeleteOne(c *gin.Context) {
 		if err != nil {
 			c.JSON(http.StatusOK, gin.H{
 				"status":  1,
-				"message": "提取失败",
+				"message": "提取失败1",
 			})
 			return
 		}
@@ -60,46 +60,46 @@ func DeleteOne(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusOK, gin.H{
 			"status":  1,
-			"message": "提取失败",
+			"message": "提取失败2",
 		})
 		return
 	}
 	if len(confYaml.Host) <= 0 {
 		c.JSON(http.StatusOK, gin.H{
 			"status":  1,
-			"message": "提取失败",
+			"message": "提取失败3",
 		})
 		return
 	}
 	token := c.GetHeader("Authorization")
 	token = token[7:]
-	del := postIT(form.Account, form.Gameid, ConfigFile, token, confYaml)
+	del := postIT(form.Account, CurrentPath, token, confYaml)
 	if del == "0" {
 		c.JSON(http.StatusOK, gin.H{
 			"status":  1,
-			"message": "提取失败",
+			"message": "提取失败4",
 		})
 		return
 	}
 	if del == "1" {
 		c.JSON(http.StatusOK, gin.H{
 			"status":  -1,
-			"message": "登陆失效",
+			"message": "登陆失效5",
 		})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{
 		"status":  0,
-		"message": "提取成功",
+		"message": "提取成功6",
 		"data":    del,
 	})
 }
 
-func postIT(account, gameid, CurrentPath, token string, confYaml *Config) string {
+func postIT(account, CurrentPath, token string, confYaml *Config) string {
 	bodyBuf := &bytes.Buffer{}
 	bodyWriter := multipart.NewWriter(bodyBuf)
 	bodyWriter.WriteField("account", account)
-	bodyWriter.WriteField("gameid", gameid)
+	bodyWriter.WriteField("gameid", confYaml.GameID)
 
 	OS := runtime.GOOS
 	LinkPathStr := "/"
@@ -113,7 +113,6 @@ func postIT(account, gameid, CurrentPath, token string, confYaml *Config) string
 	if err != nil {
 		return "0"
 	}
-
 	if string(TokenFile) == token {
 		contentType := bodyWriter.FormDataContentType()
 		bodyWriter.Close()
@@ -128,6 +127,7 @@ func postIT(account, gameid, CurrentPath, token string, confYaml *Config) string
 		if err != nil {
 			return "0"
 		}
+		fmt.Println(string(body))
 		return string(body)
 	} else {
 		return "1"

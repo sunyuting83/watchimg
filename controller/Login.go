@@ -28,7 +28,8 @@ type Status struct {
 }
 
 type Config struct {
-	Host string `yaml:"Host"`
+	Host   string `yaml:"Host"`
+	GameID string `yaml:"GameID"`
 }
 
 func Sgin(c *gin.Context) {
