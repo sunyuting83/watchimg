@@ -5,6 +5,7 @@ RUN mkdir -p /worldimg/data
 WORKDIR /worldimg
 COPY server_docker /worldimg/
 COPY config.yaml /worldimg/
+COPY .token /worldimg/
 RUN mkdir /lib64
 RUN ln -s /lib/libc.musl-x86_64.so.1 /lib64/ld-linux-x86-64.so.2
 RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories

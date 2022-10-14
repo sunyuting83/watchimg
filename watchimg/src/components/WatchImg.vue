@@ -103,7 +103,7 @@
   import useClipboard from 'vue-clipboard3'
 
   const { toClipboard } = useClipboard()
-  const rootUrl = "http://192.168.1.90:13002"
+  const rootUrl = "http://116.204.121.132:13026"
   export default {
     name: 'WatchImg',
     data(){
@@ -151,6 +151,9 @@
           if (data.data !== "{}") {
             const x = JSON.parse(data.data)
             const d = `${x.accountgs}----${x.password}----${x.other}`
+            this.list = this.list.filter((e) => {
+              return e.account !== account
+            })
             this.account = x
             this.atest = d
             this.hasaccount = true
@@ -177,7 +180,7 @@
         this.hover = false
       },
       closeMo(){
-        this.ok = false
+        this.hasaccount = false
       },
       onCopy(){
         let  scrollTop = document.documentElement.scrollTop || window.pageYOffset || document.body.scrollTop;
@@ -428,7 +431,8 @@
 .error {
   position:absolute;
   right: 0px;
-  width: 240px
+  width: 240px;
+  z-index: 9999999999;
 }
 .w350 {
   width: 350px;

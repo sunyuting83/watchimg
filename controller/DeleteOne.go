@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"runtime"
 	"strings"
+	"worldimg/database"
 	"worldimg/utils"
 
 	"github.com/gin-gonic/gin"
@@ -91,6 +92,15 @@ func DeleteOne(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"status":  -1,
 			"message": "登陆失效5",
+		})
+		return
+	}
+	datalist := &database.ImgList{Account: form.Account}
+	err = datalist.DeleteOne()
+	if err != nil {
+		c.JSON(http.StatusOK, gin.H{
+			"status":  1,
+			"message": "提取失败",
 		})
 		return
 	}
