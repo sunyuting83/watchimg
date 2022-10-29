@@ -113,15 +113,15 @@ func FileHandler(c *gin.Context) {
 	nowTime := time.Now()
 	timeStr := nowTime.Format("20060102")
 	// fileName = strings.Join([]string{fileNameList[0], "_", gold, ".", fileNameList[1]}, "")
-	Path := strings.Join([]string{"upimg", timeStr}, SplitString)
+	// Path := strings.Join([]string{"upimg", timeStr}, SplitString)
 	// fmt.Println(Path)
-	imgPath := strings.Join([]string{Path, fileName}, SplitString)
-	toDBPath := strings.Join([]string{"/static", timeStr}, "/")
-	toDBPath = strings.Join([]string{toDBPath, fileName}, "/")
+	imgPath := strings.Join([]string{"upimg", fileName}, SplitString)
+	// toDBPath := strings.Join([]string{"/static", timeStr}, "/")
+	toDBPath := strings.Join([]string{"/static", fileName}, "/")
 	// fmt.Println(imgPath)
-	check := utils.IsExist(Path)
+	check := utils.IsExist("upimg")
 	if !check {
-		err := os.MkdirAll(Path, 0766)
+		err := os.MkdirAll("upimg", 0766)
 		if err != nil {
 			c.JSON(http.StatusOK, gin.H{
 				"status":  0,

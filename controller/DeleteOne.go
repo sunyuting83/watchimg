@@ -2,6 +2,7 @@ package controller
 
 import (
 	"bytes"
+	"encoding/json"
 	"io/ioutil"
 	"mime/multipart"
 	"net/http"
@@ -104,11 +105,111 @@ func DeleteOne(c *gin.Context) {
 		})
 		return
 	}
+	if del == "{}" {
+		c.JSON(http.StatusOK, gin.H{
+			"status":  1,
+			"message": "提取失败没数据",
+		})
+		return
+	}
+	if strings.Contains(del, "参数") {
+		c.JSON(http.StatusOK, gin.H{
+			"status":  1,
+			"message": "提取失败没数据",
+		})
+		return
+	}
 	c.JSON(http.StatusOK, gin.H{
 		"status":  0,
 		"message": "提取成功6",
 		"data":    del,
 	})
+}
+
+type List struct {
+	List []string `form:"list" json:"list" xml:"list"  binding:"required"`
+}
+
+func DeleteList(c *gin.Context) {
+	var form List
+	if err := c.ShouldBind(&form); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":  1,
+			"message": err.Error(),
+		})
+		return
+	}
+	OS := runtime.GOOS
+	LinkPathStr := "/"
+	if OS == "windows" {
+		LinkPathStr = "\\"
+	}
+	CurrentPath, _ := utils.GetCurrentPath()
+
+	ConfigFile := strings.Join([]string{CurrentPath, "config.yaml"}, LinkPathStr)
+
+	var confYaml *Config
+	yamlFile, err := ioutil.ReadFile(ConfigFile)
+	if err != nil {
+		if err != nil {
+			c.JSON(http.StatusOK, gin.H{
+				"status":  1,
+				"message": "提取失败1",
+			})
+			return
+		}
+	}
+	err = yaml.Unmarshal(yamlFile, &confYaml)
+	if err != nil {
+		c.JSON(http.StatusOK, gin.H{
+			"status":  1,
+			"message": "提取失败2",
+		})
+		return
+	}
+	if len(confYaml.Host) <= 0 {
+		c.JSON(http.StatusOK, gin.H{
+			"status":  1,
+			"message": "提取失败3",
+		})
+		return
+	}
+	token := c.GetHeader("Authorization")
+	if len(token) < 10 {
+		c.JSON(http.StatusOK, gin.H{
+			"status":  1,
+			"message": "提取失败6",
+		})
+		return
+	}
+	// fmt.Println(form.List)
+	token = token[7:]
+	var temp []string
+	for _, item := range form.List {
+		del := postIT(item, CurrentPath, token, confYaml)
+		// fmt.Println(del)
+		if del != "0" && del != "1" && del != "{}" && !strings.Contains(del, "参数") {
+			var datalist database.ImgList
+			datalist.DeleteOne(item)
+			temp = append(temp, del)
+		}
+	}
+	if len(temp) == 0 {
+		c.JSON(http.StatusOK, gin.H{
+			"status":  1,
+			"message": "提取失败",
+		})
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"status":  0,
+		"message": "提取成功",
+		"list":    temp,
+	})
+}
+
+type PostData struct {
+	Account string `json:"account"`
+	GameID  string `json:"gameid"`
 }
 
 func postIT(account, CurrentPath, token string, confYaml *Config) string {
@@ -130,21 +231,32 @@ func postIT(account, CurrentPath, token string, confYaml *Config) string {
 		return "0"
 	}
 	if string(TokenFile) == token {
-		contentType := bodyWriter.FormDataContentType()
-		bodyWriter.Close()
-		URL := strings.Join([]string{confYaml.Host, "/api/gitone"}, "")
-		resp, err := http.Post(URL, contentType, bodyBuf)
-		resp.Header.Add("Bearer ", "zhaofan")
+		info := PostData{
+			Account: account,
+			GameID:  confYaml.GameID,
+		}
+		byte, _ := json.Marshal(info)
+		// fmt.Println(string(byte))
+		URL := strings.Join([]string{confYaml.Host, "/api/manage/gitone"}, "")
+		req, _ := http.NewRequest("POST", URL, strings.NewReader(string(byte)))
+		req.Header.Set("Accept", "application/json, text/plain, */*")
+		req.Header.Set("content-type", "application/json")
+		req.Header.Set("sec-ch-ua-platform", "Windows")
+		req.Header.Set("user-agent", "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36")
+		req.Header.Set("Authorization", strings.Join([]string{"Bearer", token}, " "))
+		resp, err := (&http.Client{}).Do(req)
 		if err != nil {
 			return "0"
 		}
 		defer resp.Body.Close()
-		body, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
+
+		respByte, _ := ioutil.ReadAll(resp.Body)
+		// fmt.Println(string(respByte))
+		d := string(respByte)
+		if strings.Contains(d, "Error") {
 			return "0"
 		}
-		// fmt.Println(string(body))
-		return string(body)
+		return d
 	} else {
 		return "1"
 	}
