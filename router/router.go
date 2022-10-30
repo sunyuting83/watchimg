@@ -14,7 +14,7 @@ func InitRouter(SECRET_KEY, CurrentPath string) *gin.Engine {
 	api := router.Group("/api")
 	api.Use(utils.SetConfigMiddleWare(SECRET_KEY, CurrentPath))
 	{
-		router.GET("/", controller.Index)
+		router.GET("/", utils.VerifyMiddleware(), controller.Index)
 		api.POST("/upimg", controller.FileHandler)
 		api.GET("/data", utils.VerifyMiddleware(), controller.GetData)
 		api.GET("/odata", utils.VerifyMiddleware(), controller.GetOldData)

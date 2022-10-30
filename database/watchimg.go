@@ -71,13 +71,11 @@ func (imglist *ImgList) GetOldCount() (count int64, err error) {
 }
 
 // GetImgList 列表
-func (imglist *ImgList) GetOldImgList(page int64) (imglists []ImgLists, err error) {
-	p := makePage(page)
+func (imglist *ImgList) GetOldImgList() (imglists []ImgLists, err error) {
 	sql := `SELECT s.*,t.username FROM imageData AS s INNER JOIN user AS t WHERE s.new_status = 1 AND s.user_id = t.id`
 	if err = Eloquent.
 		Raw(sql).
 		Order("updatetime desc").
-		Limit(100).Offset(p).
 		Scan(&imglists).Error; err != nil {
 		return
 	}

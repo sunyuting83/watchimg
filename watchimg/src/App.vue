@@ -1,15 +1,29 @@
 <template>
-  <!-- <img alt="Vue logo" src="./assets/logo.png"> -->
-  <WatchImg />
+  <div id="app">
+    <router-view v-if="isRouterAlive" />
+  </div>
 </template>
 
 <script>
-import WatchImg from './components/WatchImg.vue'
-
 export default {
   name: 'App',
-  components: {
-    WatchImg
+  provide() {
+    return{
+      reload: this.reload	
+    }
+  },
+  data(){
+    return{
+      isRouterAlive: true	
+    }
+  },
+  methods: {
+    reload(){
+      this.isRouterAlive = false
+      this.$nextTick(() =>{
+        this.isRouterAlive = true		
+      })
+    }
   }
 }
 </script>

@@ -38,19 +38,8 @@ func GetData(c *gin.Context) {
 }
 
 func GetOldData(c *gin.Context) {
-	var page string = c.DefaultQuery("page", "0")
-	pageInt, _ := strconv.ParseInt(page, 10, 64)
-
 	var datalist database.ImgList
-	count, err := datalist.GetOldCount()
-	if err != nil {
-		c.JSON(http.StatusOK, gin.H{
-			"status":  0,
-			"message": "失败",
-		})
-		return
-	}
-	dataList, err := datalist.GetOldImgList(pageInt)
+	dataList, err := datalist.GetOldImgList()
 	if err != nil {
 		c.JSON(http.StatusOK, gin.H{
 			"status":  0,
@@ -62,7 +51,6 @@ func GetOldData(c *gin.Context) {
 	Data := gin.H{
 		"status": 1,
 		"data":   dataList,
-		"total":  count,
 	}
 	c.JSON(http.StatusOK, Data)
 }

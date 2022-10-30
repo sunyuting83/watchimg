@@ -3,7 +3,6 @@ package controller
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"mime/multipart"
 	"net/http"
@@ -113,8 +112,7 @@ func DeleteOne(c *gin.Context) {
 	datalist.UpDateTime = NowTime
 	datalist.UserID = ID
 
-	dd, err := datalist.UpdateImg(form.Account)
-	fmt.Println(dd)
+	_, err = datalist.UpdateImg(form.Account)
 	if err != nil {
 		c.JSON(http.StatusOK, gin.H{
 			"status":  1,
@@ -273,7 +271,7 @@ func postIT(account, token string, confYaml *Config) string {
 		defer resp.Body.Close()
 
 		respByte, _ := ioutil.ReadAll(resp.Body)
-		fmt.Println(string(respByte))
+		// fmt.Println(string(respByte))
 		d := string(respByte)
 		if strings.Contains(d, "Error") {
 			return "0"
