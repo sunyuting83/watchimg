@@ -62,7 +62,7 @@
                     <td>{{makeNumber(item.today)}}</td>
                     <td>{{makeNumber(item.yesterday)}}</td>
                     <td>{{item.multiple}}</td>
-                    <td><img class="thisimg" :src="rootUrl + item.cover" /></td>
+                    <td><img class="statesimg" :src="rootUrl + item.cover" /></td>
                     <td><FormaTime :DateTime="item.datetime"></FormaTime></td>
                     <td>
                       <div class="buttons are-small">
@@ -82,11 +82,14 @@
       <PaginAtion v-if="data.length > 0" :total="total" :number="100" :GetData="GetData"></PaginAtion>
     </div>
     <NotIfication
-      :showData="openerr">
-    </NotIfication>
+      :showData="openerr" />
     <RenewalCard
       :showData="openModal"
-      :ShowMessage="ShowMessage"></RenewalCard>
+      :ShowMessage="ShowMessage" />
+    <ListData
+      :showData="arrayModal"
+      :Close="closeArray"
+      :ShowMessage="ShowMessage" />
     <div class="is-img" :style="{top:hoverTop+'px'}" v-if="imghover"><img :src="rootUrl + currentImg" /></div>
   </div>
 </template>
@@ -100,13 +103,14 @@ import NotIfication from "@/components/Other/Notification"
 import PaginAtion from '@/components/Other/PaginAtion'
 import FormaTime from '@/components/Other/FormaTime'
 import RenewalCard from '@/components/Other/Renewal'
+import ListData from '@/components/Other/ListData'
 
 
 import Fetch from '@/helper/fetch'
 import Config from '@/helper/config'
 export default defineComponent({
   name: 'AccList',
-  components: { ManageHeader, LoadIng, EmptyEd, NotIfication, PaginAtion, FormaTime, RenewalCard },
+  components: { ManageHeader, LoadIng, EmptyEd, NotIfication, PaginAtion, FormaTime, RenewalCard, ListData },
   setup() {
     const router = useRouter()
     let states = reactive({
@@ -134,15 +138,13 @@ export default defineComponent({
         },
         atest: "",
       },
+      arrayModal:{
+        active: false,
+        datacount: "",
+      },
       currentImg: '',
-      hover: false,
       imghover: false,
-      status: 0,
-      ok: false,
-      checkbos:[],
       hoverTop: 0,
-      listcount: "",
-      haslist: false,
     })
     onBeforeMount(async()=>{
       states.loading = true
@@ -177,7 +179,6 @@ export default defineComponent({
         states.page = []
         states.loading = false
         localStorage.removeItem("token")
-        states.hidden = false
       }
     }
     const Search = () => {
@@ -198,10 +199,6 @@ export default defineComponent({
     }
     const ShowMessage = (e) => {
       states.openerr = e
-    }
-    const showModel = (e) => {
-      states.openModal.card = e
-      states.openModal.active = true
     }
 
     const makeNumber = (n) =>{
@@ -270,10 +267,8 @@ export default defineComponent({
       if (data.status == -1) {
         states.data = []
         states.total = 0
-        states.status = 0
         states.page = []
         localStorage.removeItem("token")
-        states.hidden = false
       }else if (data.status == 1) {
         ShowMessage(e)
       }else {
@@ -295,25 +290,85 @@ export default defineComponent({
       }
     }
 
+    const getall = async() => {
+      const list = states.checkTemp
+      const e = {
+          active: true,
+          message: "获取失败",
+          color: "is-danger",
+          newtime: 0,
+        }
+      if (list.length > 0 ) {
+        states.loading = true
+        const token = localStorage.getItem("token")
+        const params = {
+          'list': states.checkTemp
+        }
+        const data = await Fetch(Config.Api.delist, params, "DELETE", token)
+        if (data.status == -1) {
+          states.data = []
+          states.total = 0
+          states.page = []
+          localStorage.removeItem("token")
+        }else if (data.status == 1) {
+          states.loading = false
+          ShowMessage(e)
+        }else {
+          if (data.list !== null && data.list.length > 0) {
+            let xyz = []
+            data.list.forEach((el) => {
+              let what = ""
+              const z = JSON.parse(el)
+              states.data.forEach((y) => {
+                if (el.accountgs !== y.account) {
+                  what = `${z.accountgs}----${z.password}----${makeNumber(y.today)}----${y.multiple}倍砲台`
+                }
+              })
+              xyz = [...xyz, what]
+            })
+            states.data = states.data.filter((el) => {
+              return data.list.every((el2) => {
+                const eel = JSON.parse(el2)
+                return eel.accountgs !== el.account
+              })
+            })
+            states.arrayModal.datacount = xyz.join("\r\n")
+            states.arrayModal.active = true
+          }else{
+            states.loading = false
+            ShowMessage(e)
+          }
+        }
+      }else{
+        states.loading = false
+        ShowMessage(e)
+      }
+    }
+
+    const closeArray = () => {
+      location.reload()
+    }
+
     return {
       ...toRefs(states),
       GetData,
       Search,
       Clean,
       ShowMessage,
-      showModel,
       makeNumber,
       setBackage,
       checkBox,
       checkall,
-      delit
+      delit,
+      closeArray,
+      getall
     }
   },
 })
 </script>
 
 <style scoped>
-.thisimg {
+.statesimg {
   width: 150px;
   height: 30px;
   max-width: 150px;

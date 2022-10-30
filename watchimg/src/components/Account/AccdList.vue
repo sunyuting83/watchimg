@@ -126,7 +126,7 @@ export default defineComponent({
       currentImg: '',
       imghover: false,
       hoverTop: 0,
-      pageNumber: 3,
+      pageNumber: 1,
       currentPage: 1,
       SearchDatekey: ""
     })
@@ -210,6 +210,7 @@ export default defineComponent({
         date = [...date, FormatTime(el.updatetime)]
       })
       date = [... new Set(date)]
+      date = quickSort(date)
       date.forEach((e) => {
         let newDate = {
           date: e,
@@ -223,6 +224,24 @@ export default defineComponent({
         newData = [...newData, newDate]
       })
       return newData
+    }
+
+    const quickSort = (arr) => {
+      if (arr.length <= 1) {
+        return arr
+      }
+      let pivotIndex = Math.floor(arr.length / 2)
+      let pivot = arr.splice(pivotIndex, 1)[0]
+      let left = []
+      let right = []
+      for (let i = 0; i < arr.length; i++) {
+        if (arr[i] > pivot) {
+          left.push(arr[i])
+        } else {
+          right.push(arr[i])
+        }
+      }
+      return quickSort(left).concat([pivot], quickSort(right))
     }
 
     const setBackage = (hover,img) => {

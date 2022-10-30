@@ -229,6 +229,7 @@ func DeleteList(c *gin.Context) {
 			"status":  1,
 			"message": "提取失败",
 		})
+		return
 	}
 	c.JSON(http.StatusOK, gin.H{
 		"status":  0,

@@ -3,15 +3,15 @@
     <div class="container">
       <div class="navbar-brand">
         <span class="navbar-item brand-text">
-          <img :src="logo">Card Manage
+          <img :src="logo">Account Manage
         </span>
       </div>
       <div id="navMenu" class="navbar-menu">
         <div class="navbar-start">
-          <router-link class="navbar-item" to="acclist">
+          <router-link class="navbar-item" :class="path === 'acclist'?'is-active':''" to="acclist">
             未提取帐号
           </router-link>
-          <router-link class="navbar-item" to="acclistd">
+          <router-link class="navbar-item" :class="path === 'acclistd'?'is-active':''" to="acclistd">
             已提取帐号
           </router-link>
         </div>
@@ -34,7 +34,6 @@
                   <p><span class="is-size-7">可以刷号! 努力賺錢.</span></p>
                 </div>
                 <hr class="dropdown-divider">
-                <hr class="navbar-divider">
                 <a class="navbar-item" @click="LogOut">
                   退出登陆
                 </a>
@@ -57,6 +56,7 @@ export default defineComponent({
     const router = useRouter()
     let states = reactive({
       logo: Config.images[2],
+      path: router.currentRoute.value.name
     })
     const LogOut =() =>{
       setStorage(false)
@@ -64,7 +64,8 @@ export default defineComponent({
     }
     return {
       ...toRefs(states),
-      LogOut
+      LogOut,
+      router
     }
   }
 })
