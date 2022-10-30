@@ -6,7 +6,6 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"mime/multipart"
 	"net/http"
 	"os"
@@ -51,7 +50,7 @@ func postFile(filename, gold, multiple string, confYaml *utils.Config) {
 		fmt.Println("0")
 	}
 	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
+	body, _ := io.ReadAll(resp.Body)
 	var m *Status
 	json.Unmarshal(body, &m)
 	// fmt.Println(m.Status)

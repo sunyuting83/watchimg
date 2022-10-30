@@ -48,7 +48,7 @@ func postFile(filename string, confYaml *utils.Config) error {
 		return err
 	}
 	defer resp.Body.Close()
-	// resp_body, err := ioutil.ReadAll(resp.Body)
+	// resp_body, err := io.ReadAll(resp.Body)
 	// if err != nil {
 	// 	fmt.Println(err)
 	// 	return err

@@ -6,7 +6,6 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"mime/multipart"
 	"net/http"
 	"os"
@@ -58,7 +57,7 @@ func postFile(filename string) {
 		fmt.Println("")
 	}
 	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
+	body, _ := io.ReadAll(resp.Body)
 	var m *Status
 	json.Unmarshal(body, &m)
 	// fmt.Println(m.Status)
@@ -95,7 +94,7 @@ func main() {
 
 func GbkToUtf8(s []byte) ([]byte, error) {
 	reader := transform.NewReader(bytes.NewReader(s), simplifiedchinese.GBK.NewDecoder())
-	d, e := ioutil.ReadAll(reader)
+	d, e := io.ReadAll(reader)
 	if e != nil {
 		return nil, e
 	}
@@ -104,7 +103,7 @@ func GbkToUtf8(s []byte) ([]byte, error) {
 
 func Utf8ToGbk(s []byte) ([]byte, error) {
 	reader := transform.NewReader(bytes.NewReader(s), simplifiedchinese.GBK.NewEncoder())
-	d, e := ioutil.ReadAll(reader)
+	d, e := io.ReadAll(reader)
 	if e != nil {
 		return nil, e
 	}

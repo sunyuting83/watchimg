@@ -3,7 +3,7 @@ package controller
 import (
 	"bytes"
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"mime/multipart"
 	"net/http"
 	"os"
@@ -173,7 +173,7 @@ func DeleteList(c *gin.Context) {
 	ConfigFile := strings.Join([]string{CurrentPath.(string), "config.yaml"}, LinkPathStr)
 
 	var confYaml *Config
-	yamlFile, err := ioutil.ReadFile(ConfigFile)
+	yamlFile, err := os.ReadFile(ConfigFile)
 	if err != nil {
 		if err != nil {
 			c.JSON(http.StatusOK, gin.H{
@@ -271,7 +271,7 @@ func postIT(account, token string, confYaml *Config) string {
 		}
 		defer resp.Body.Close()
 
-		respByte, _ := ioutil.ReadAll(resp.Body)
+		respByte, _ := io.ReadAll(resp.Body)
 		// fmt.Println(string(respByte))
 		d := string(respByte)
 		if strings.Contains(d, "Error") {

@@ -2,7 +2,7 @@ package controller
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"os"
 	"runtime"
@@ -54,7 +54,7 @@ func FileHandler(c *gin.Context) {
 		return
 	}
 
-	b, _ := ioutil.ReadAll(file)
+	b, _ := io.ReadAll(file)
 	/*
 		gold := GetWord(b)
 		gold = strings.Replace(gold, " ", "", -1)

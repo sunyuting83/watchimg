@@ -3,9 +3,10 @@ package controller
 import (
 	"bytes"
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"mime/multipart"
 	"net/http"
+	"os"
 	"runtime"
 	"strings"
 	"time"
@@ -67,7 +68,7 @@ func Sgin(c *gin.Context) {
 	ConfigFile := strings.Join([]string{CurrentPath, "config.yaml"}, LinkPathStr)
 
 	var confYaml *Config
-	yamlFile, err := ioutil.ReadFile(ConfigFile)
+	yamlFile, err := os.ReadFile(ConfigFile)
 	if err != nil {
 		if err != nil {
 			c.JSON(http.StatusOK, gin.H{
@@ -121,7 +122,7 @@ func postIt(username, password, CurrentPath string, confYaml *Config) string {
 		return "0"
 	}
 	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return "0"
 	}
