@@ -18,7 +18,8 @@ import (
 
 // Node node
 type Node struct {
-	Gold string `form:"gold" json:"gold" xml:"gold"  binding:"required"`
+	Gold     string `form:"gold" json:"gold" xml:"gold"  binding:"required"`
+	Multiple int64  `form:"multiple" json:"multiple" xml:"multiple"  binding:"required"`
 }
 
 func FileHandler(c *gin.Context) {
@@ -144,6 +145,7 @@ func FileHandler(c *gin.Context) {
 	imglist.Account = fileNameList[0]
 	imglist.Cover = toDBPath
 	imglist.Today = gold
+	imglist.Multiple = form.Multiple
 
 	timeobj := time.Unix(int64(account.DateTime), 0)
 	olDate := timeobj.Format("20060102")
