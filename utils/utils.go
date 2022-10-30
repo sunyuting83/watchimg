@@ -7,9 +7,9 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"runtime"
 	"strings"
 	"time"
+	"worldimg/database"
 
 	"github.com/gin-gonic/gin"
 	"gopkg.in/yaml.v2"
@@ -26,7 +26,10 @@ func VerifyMiddleware() gin.HandlerFunc {
 		token := c.GetHeader("Authorization")
 		if len(token) > 10 {
 			token = token[7:]
-			if CheckToken(token) {
+			check, id := CheckToken(token)
+			if check {
+				c.Set("user_id", id)
+				c.Writer.Status()
 				c.Next()
 			} else {
 				c.AbortWithStatus(403)
@@ -38,23 +41,16 @@ func VerifyMiddleware() gin.HandlerFunc {
 }
 
 // CheckToken is a check token function
-func CheckToken(a string) bool {
-	OS := runtime.GOOS
-	LinkPathStr := "/"
-	if OS == "windows" {
-		LinkPathStr = "\\"
-	}
-	CurrentPath, _ := GetCurrentPath()
-
-	TokenFile := strings.Join([]string{CurrentPath, ".token"}, LinkPathStr)
-	tokenFile, err := ioutil.ReadFile(TokenFile)
+func CheckToken(a string) (st bool, id int64) {
+	var user database.User
+	data, err := user.GetUser(a)
 	if err != nil {
-		return false
+		return false, 0
 	}
-	if a == string(tokenFile) {
-		return true
+	if a == data.Token {
+		return true, data.ID
 	}
-	return false
+	return false, 0
 }
 
 // GetCurrentPath Get Current Path
@@ -119,9 +115,10 @@ func CORSMiddleware() gin.HandlerFunc {
 }
 
 // SetConfigMiddleWare set config
-func SetConfigMiddleWare(SECRET_KEY string) gin.HandlerFunc {
+func SetConfigMiddleWare(SECRET_KEY, CurrentPath string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.Set("secret_key", SECRET_KEY)
+		c.Set("current_path", CurrentPath)
 		c.Writer.Status()
 	}
 }

@@ -21,10 +21,11 @@ type Status struct {
 	Message string `json:"message"`
 }
 
-func postFile(filename, gold string, confYaml *utils.Config) {
+func postFile(filename, gold, multiple string, confYaml *utils.Config) {
 	bodyBuf := &bytes.Buffer{}
 	bodyWriter := multipart.NewWriter(bodyBuf)
 	bodyWriter.WriteField("gold", gold)
+	bodyWriter.WriteField("multiple", multiple)
 	fileWriter, err := bodyWriter.CreateFormFile("image", filename)
 	if err != nil {
 		fmt.Println("0")
@@ -65,11 +66,13 @@ func postFile(filename, gold string, confYaml *utils.Config) {
 // sample usage
 func main() {
 	var (
-		file string
-		gold string
+		file     string
+		gold     string
+		multiple string
 	)
 	flag.StringVar(&file, "file", "3000", "image path")
 	flag.StringVar(&gold, "gold", "0", "gold")
+	flag.StringVar(&multiple, "multiple", "0", "gold")
 	flag.Parse()
 
 	OS := runtime.GOOS
@@ -85,5 +88,5 @@ func main() {
 		time.Sleep(time.Duration(10) * time.Second)
 		os.Exit(0)
 	}
-	postFile(fileName, gold, confYaml)
+	postFile(fileName, gold, multiple, confYaml)
 }

@@ -27,7 +27,7 @@ func main() {
 	gin.SetMode(gin.ReleaseMode)
 	// gin.SetMode(gin.DebugMode)
 	defer orm.Eloquent.Close()
-	app := router.InitRouter(confYaml.SECRET_KEY)
+	app := router.InitRouter(confYaml.SECRET_KEY, CurrentPath)
 
 	app.Run(strings.Join([]string{":", confYaml.Port}, ""))
 }

@@ -6,9 +6,10 @@ import (
 	"io/ioutil"
 	"mime/multipart"
 	"net/http"
-	"os"
 	"runtime"
 	"strings"
+	"time"
+	"worldimg/database"
 	"worldimg/utils"
 
 	"github.com/gin-gonic/gin"
@@ -130,9 +131,12 @@ func postIt(username, password, CurrentPath string, confYaml *Config) string {
 	if m.Code != 1 {
 		return "0"
 	} else {
-		TokenFile := strings.Join([]string{CurrentPath, ".token"}, "/")
-		os.WriteFile(TokenFile, []byte(m.Token), 0644)
+		nowTime := time.Now().Unix()
+		var user database.User
+		user.Username = username
+		user.Token = m.Token
+		user.DateTime = nowTime
+		user.Insert()
 		return m.Token
 	}
-	// return nil
 }

@@ -250,7 +250,7 @@
       async delit(account){
         const url = `${rootUrl}/api/delone`
         const data = await this.delData(url,account)
-        // console.log(data)
+        console.log(data)
         if (data.status == -1) {
           this.list = []
           this.total = 0
@@ -361,6 +361,7 @@
       async GetData(){
         const url = `${rootUrl}/api/data`
         let data = await this.getData(url)
+        console.log(data)
         if (data.status === 1) {
           this.list = data.data.map((e)=>{
             e.check = false

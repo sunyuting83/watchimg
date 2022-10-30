@@ -3,13 +3,15 @@ package controller
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"mime/multipart"
 	"net/http"
+	"os"
 	"runtime"
 	"strings"
+	"time"
 	"worldimg/database"
-	"worldimg/utils"
 
 	"github.com/gin-gonic/gin"
 	"gopkg.in/yaml.v2"
@@ -37,17 +39,25 @@ func DeleteOne(c *gin.Context) {
 		})
 		return
 	}
+	user, has := c.Get("user_id")
+	if !has {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"status":  1,
+			"message": "haven't node",
+		})
+		return
+	}
+	// fmt.Println(user.(int64))
 	OS := runtime.GOOS
 	LinkPathStr := "/"
 	if OS == "windows" {
 		LinkPathStr = "\\"
 	}
-	CurrentPath, _ := utils.GetCurrentPath()
+	CurrentPath, _ := c.Get("current_path")
 
-	ConfigFile := strings.Join([]string{CurrentPath, "config.yaml"}, LinkPathStr)
-
+	ConfigFile := strings.Join([]string{CurrentPath.(string), "config.yaml"}, LinkPathStr)
 	var confYaml *Config
-	yamlFile, err := ioutil.ReadFile(ConfigFile)
+	yamlFile, err := os.ReadFile(ConfigFile)
 	if err != nil {
 		if err != nil {
 			c.JSON(http.StatusOK, gin.H{
@@ -81,7 +91,8 @@ func DeleteOne(c *gin.Context) {
 		return
 	}
 	token = token[7:]
-	del := postIT(form.Account, CurrentPath, token, confYaml)
+	var datalist database.ImgList
+	del := postIT(form.Account, token, confYaml)
 	if del == "0" {
 		c.JSON(http.StatusOK, gin.H{
 			"status":  1,
@@ -96,8 +107,14 @@ func DeleteOne(c *gin.Context) {
 		})
 		return
 	}
-	var datalist database.ImgList
-	datalist.DeleteOne(form.Account)
+	ID := user.(int64)
+	NowTime := time.Now().Unix()
+	datalist.NewStatus = 1
+	datalist.UpDateTime = NowTime
+	datalist.UserID = ID
+
+	dd, err := datalist.UpdateImg(form.Account)
+	fmt.Println(dd)
 	if err != nil {
 		c.JSON(http.StatusOK, gin.H{
 			"status":  1,
@@ -139,14 +156,23 @@ func DeleteList(c *gin.Context) {
 		})
 		return
 	}
+
+	user, has := c.Get("user_id")
+	if !has {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"status":  1,
+			"message": "haven't node",
+		})
+		return
+	}
 	OS := runtime.GOOS
 	LinkPathStr := "/"
 	if OS == "windows" {
 		LinkPathStr = "\\"
 	}
-	CurrentPath, _ := utils.GetCurrentPath()
+	CurrentPath, _ := c.Get("current_path")
 
-	ConfigFile := strings.Join([]string{CurrentPath, "config.yaml"}, LinkPathStr)
+	ConfigFile := strings.Join([]string{CurrentPath.(string), "config.yaml"}, LinkPathStr)
 
 	var confYaml *Config
 	yamlFile, err := ioutil.ReadFile(ConfigFile)
@@ -185,12 +211,18 @@ func DeleteList(c *gin.Context) {
 	// fmt.Println(form.List)
 	token = token[7:]
 	var temp []string
+	ID := user.(int64)
+	NowTime := time.Now().Unix()
 	for _, item := range form.List {
-		del := postIT(item, CurrentPath, token, confYaml)
+		del := postIT(item, token, confYaml)
 		// fmt.Println(del)
 		if del != "0" && del != "1" && del != "{}" && !strings.Contains(del, "参数") {
 			var datalist database.ImgList
-			datalist.DeleteOne(item)
+			datalist.NewStatus = 1
+			datalist.UpDateTime = NowTime
+			datalist.UserID = ID
+
+			datalist.UpdateImg(item)
 			temp = append(temp, del)
 		}
 	}
@@ -212,25 +244,15 @@ type PostData struct {
 	GameID  string `json:"gameid"`
 }
 
-func postIT(account, CurrentPath, token string, confYaml *Config) string {
+func postIT(account, token string, confYaml *Config) string {
 	bodyBuf := &bytes.Buffer{}
 	bodyWriter := multipart.NewWriter(bodyBuf)
 	bodyWriter.WriteField("account", account)
 	bodyWriter.WriteField("gameid", confYaml.GameID)
 
-	OS := runtime.GOOS
-	LinkPathStr := "/"
-	if OS == "windows" {
-		LinkPathStr = "\\"
-	}
-
-	ConfigFile := strings.Join([]string{CurrentPath, ".token"}, LinkPathStr)
-
-	TokenFile, err := ioutil.ReadFile(ConfigFile)
-	if err != nil {
-		return "0"
-	}
-	if string(TokenFile) == token {
+	var user database.User
+	data, _ := user.GetUser(token)
+	if data.Token == token {
 		info := PostData{
 			Account: account,
 			GameID:  confYaml.GameID,
@@ -251,7 +273,7 @@ func postIT(account, CurrentPath, token string, confYaml *Config) string {
 		defer resp.Body.Close()
 
 		respByte, _ := ioutil.ReadAll(resp.Body)
-		// fmt.Println(string(respByte))
+		fmt.Println(string(respByte))
 		d := string(respByte)
 		if strings.Contains(d, "Error") {
 			return "0"
