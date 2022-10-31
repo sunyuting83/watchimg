@@ -74,5 +74,16 @@ func InitDB(d string) {
 		}
 	}
 
+	sql4 := `select * from sqlite_master where name='` + tableName + `' and sql like '%password%'`
+	row4 := Eloquent.Raw(sql4).Row()
+	err = row4.Scan(&c)
+	if err != nil {
+		if strings.Contains(err.Error(), "no rows") {
+			sql := `alter table ` + tableName + ` add password VARCHAR`
+			fmt.Println(sql)
+			Eloquent.Exec(sql)
+		}
+	}
+
 	Eloquent.SingularTable(true)
 }

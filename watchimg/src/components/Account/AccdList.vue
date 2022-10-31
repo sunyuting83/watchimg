@@ -58,25 +58,48 @@
         <div class="card events-card mt-5"  v-else  v-for="(item) in data" :key="item.date">
           <header class="card-header">
             <p class="card-header-title">
-              {{title}}卡号列表-日期：{{item.date}}
+              {{title}}卡号列表-日期：<span class="has-text-link-dark mr-5">{{item.date}}</span> 帐号总数：<span class="has-text-danger-dark">{{item.data.length}}</span>
             </p>
+              <div class="buttons are-small card-header-icon">
+                <button class="button is-success" @click="()=>copyIt(item.date)">
+                  复制本页数据到剪切板
+                </button>
+              </div>
           </header>
           <div class="card-content">
             <div class="content has-text-centered	min-heights" style="min-height: 11.3rem">
               <table class="table is-striped is-hoverable is-fullwidth is-narrow has-text-left">
                 <thead>
                   <tr>
+                    <td>编号</td>
                     <td>帐号</td>
-                    <td>今日金币</td>
+                    <td>密码</td>
+                    <td>
+                      <span style="cursor: pointer" @click="()=>sortTable(item.date)">
+                        今日金币
+                        <span class="icon is-small">
+                          <i class="fa" :class="goldSort?'fa-angle-up':'fa-angle-down'"></i>
+                        </span>
+                      </span>
+                    </td>
                     <td>炮台倍数</td>
                     <td>金币截图</td>
                     <td>提号人</td>
-                    <td>日期</td>
+                    <td>
+                      <span style="cursor: pointer" @click="()=>sortDatetime(item.date)">
+                        日期
+                        <span class="icon is-small">
+                          <i class="fa" :class="dateSort?'fa-angle-up':'fa-angle-down'"></i>
+                        </span>
+                      </span>
+                    </td>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="(it) in item.data" :key="it.id" @mouseover="setBackage(true,it.cover)" @mouseout="setBackage(false,'')">
+                  <tr v-for="(it,index) in item.data" :key="it.id" @mouseover="()=>setBackage(true,it.cover)" @mouseout="()=>setBackage(false,'')">
+                    <td>{{index}}</td>
                     <td>{{it.account}}</td>
+                    <td>{{it.password}}</td>
                     <td>{{makeNumber(it.today)}}</td>
                     <td>{{it.multiple}}</td>
                     <td><img class="thisimg" :src="rootUrl + it.cover" /></td>
@@ -91,6 +114,8 @@
       </div>
 
       <PaginAtion v-if="data.length > 0" :total="total" :number="pageNumber" :GetData="makePageData"></PaginAtion>
+      <NotIfication
+        :showData="openerr" />
     </div>
     <div class="is-img" :style="{top:hoverTop+'px'}" v-if="imghover"><img :src="rootUrl + currentImg" /></div>
   </div>
@@ -98,19 +123,22 @@
 <script>
 import { reactive, toRefs, defineComponent, onBeforeMount } from 'vue'
 import { useRouter } from 'vue-router'
+import useClipboard from 'vue-clipboard3'
+const { toClipboard } = useClipboard()
 
 import ManageHeader from '@/components/Other/Header'
 import LoadIng from '@/components/Other/Loading'
 import EmptyEd from '@/components/Other/Empty'
 import PaginAtion from '@/components/Other/PaginAtion'
 import FormaTime from '@/components/Other/FormaTime'
+import NotIfication from "@/components/Other/Notification"
 
 
 import Fetch from '@/helper/fetch'
 import Config from '@/helper/config'
 export default defineComponent({
   name: 'AccdList',
-  components: { ManageHeader, LoadIng, EmptyEd, PaginAtion, FormaTime },
+  components: { ManageHeader, LoadIng, EmptyEd, PaginAtion, FormaTime, NotIfication },
   setup() {
     const router = useRouter()
     let states = reactive({
@@ -128,7 +156,15 @@ export default defineComponent({
       hoverTop: 0,
       pageNumber: 1,
       currentPage: 1,
-      SearchDatekey: ""
+      SearchDatekey: "",
+      goldSort: false,
+      dateSort: false,
+      openerr: {
+        active: false,
+        message: "",
+        color: "",
+        newtime: 0,
+      }
     })
     onBeforeMount(async()=>{
       states.loading = true
@@ -226,7 +262,7 @@ export default defineComponent({
       return newData
     }
 
-    const quickSort = (arr) => {
+    const quickSort = (arr, s = true) => {
       if (arr.length <= 1) {
         return arr
       }
@@ -235,10 +271,18 @@ export default defineComponent({
       let left = []
       let right = []
       for (let i = 0; i < arr.length; i++) {
-        if (arr[i] > pivot) {
-          left.push(arr[i])
-        } else {
-          right.push(arr[i])
+        if (s) {
+          if (arr[i] > pivot) {
+            left.push(arr[i])
+          } else {
+            right.push(arr[i])
+          }
+        }else {
+          if (arr[i] < pivot) {
+            left.push(arr[i])
+          } else {
+            right.push(arr[i])
+          }
         }
       }
       return quickSort(left).concat([pivot], quickSort(right))
@@ -272,6 +316,71 @@ export default defineComponent({
         makePageData(states.currentPage)
       }
     }
+    const sortTable = (date) => {
+      states.goldSort = !states.goldSort
+      states.data.map(e => {
+        if(e.date == date) {
+          e.data.sort((a, b)=>{
+            if (states.goldSort) {
+              return a.today - b.today
+            }else{
+              return b.today - a.today
+            }
+          })
+        }
+      })
+    }
+    const sortDatetime = (date) => {
+      states.dateSort = !states.dateSort
+      states.data.map(e => {
+        if(e.date == date) {
+          e.data.sort((a, b)=>{
+            if (states.dateSort) {
+              return a.updatetime - b.updatetime
+            }else{
+              return b.updatetime - a.updatetime
+            }
+          })
+        }
+      })
+    }
+    const makeNumberINT = (n) =>{
+      let x = "0"
+      if ((n+"").length >= 9 && n !== 0) {
+        const a = Math.floor(n / 100000000)
+        x = `${a}`
+      }else if (n === 123) {
+        x = "识别错误"
+      }else{
+        if (n !== 0 ) {
+          const a = Math.floor(n / 10000)
+          x = `${a}`
+        }
+      }
+      return x
+    }
+    const ShowMessage = (e) => {
+      states.openerr = e
+    }
+    const copyIt = async(date) => {
+      const d = states.data
+      let t = []
+      d.map(e => {
+        if(e.date == date) {
+          e.data.map(el=>{
+            t = [...t, `${el.account}\t${el.password}\t${makeNumberINT(el.today)}\t${el.multiple}`]
+          })
+        }
+      })
+      const dd = t.join("\r\n")
+      await toClipboard(dd)
+      const e = {
+        active: true,
+        message: "复制帐号成功",
+        color: "is-success"
+      }
+      ShowMessage(e)
+    }
 
     return {
       ...toRefs(states),
@@ -282,6 +391,9 @@ export default defineComponent({
       setBackage,
       makePageData,
       SearchDate,
+      sortTable,
+      sortDatetime,
+      copyIt
     }
   },
 })

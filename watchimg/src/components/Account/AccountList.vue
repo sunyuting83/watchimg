@@ -216,6 +216,21 @@ export default defineComponent({
       }
       return x
     }
+    const makeNumberINT = (n) =>{
+      let x = "0"
+      if ((n+"").length >= 9 && n !== 0) {
+        const a = Math.floor(n / 100000000)
+        x = `${a}`
+      }else if (n === 123) {
+        x = "识别错误"
+      }else{
+        if (n !== 0 ) {
+          const a = Math.floor(n / 10000)
+          x = `${a}`
+        }
+      }
+      return x
+    }
 
     const setBackage = (hover,img) => {
       states.currentImg = img
@@ -273,11 +288,13 @@ export default defineComponent({
         ShowMessage(e)
       }else {
         if (data.data !== "{}") {
-          const x = JSON.parse(data.data)
+          const x = data.data
           let d = ""
           states.data = states.data.filter((e) => {
-            d = `${x.accountgs}----${x.password}----${makeNumber(e.today)}----${e.multiple}倍砲台`
-            return e.account !== account
+            if (e.account == x.accountgs) {
+              d = `${x.accountgs}\t${x.password}\t${makeNumberINT(e.today)}\t${e.multiple}`
+            }
+            return e.account !== x.accountgs
           })
           states.total = states.total - 1
           states.openModal.active = true
@@ -316,19 +333,22 @@ export default defineComponent({
         }else {
           if (data.list !== null && data.list.length > 0) {
             let xyz = []
-            data.list.forEach((el) => {
+            data.list.map((el) => {
               let what = ""
-              const z = JSON.parse(el)
-              states.data.forEach((y) => {
-                if (el.accountgs !== y.account) {
-                  what = `${z.accountgs}----${z.password}----${makeNumber(y.today)}----${y.multiple}倍砲台`
+              const z = el
+              states.data.map((y) => {
+                if (z.accountgs == y.account) {
+                  // console.log(z.accountgs,y.account)
+                  what = `${z.accountgs}\t${z.password}\t${makeNumberINT(y.today)}\t${y.multiple}`
+                  return y
                 }
               })
               xyz = [...xyz, what]
+              return el
             })
             states.data = states.data.filter((el) => {
               return data.list.every((el2) => {
-                const eel = JSON.parse(el2)
+                const eel = el2
                 return eel.accountgs !== el.account
               })
             })

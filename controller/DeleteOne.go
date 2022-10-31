@@ -21,6 +21,12 @@ type Account struct {
 	Account string `form:"account" json:"account" xml:"account"  binding:"required"`
 }
 
+type DelData struct {
+	Accountgs string `json:"accountgs"`
+	Password  string `json:"password"`
+	Other     string `json:"other"`
+}
+
 func DeleteOne(c *gin.Context) {
 	var form Account
 	if err := c.ShouldBind(&form); err != nil {
@@ -106,20 +112,7 @@ func DeleteOne(c *gin.Context) {
 		})
 		return
 	}
-	ID := user.(int64)
-	NowTime := time.Now().Unix()
-	datalist.NewStatus = 1
-	datalist.UpDateTime = NowTime
-	datalist.UserID = ID
 
-	_, err = datalist.UpdateImg(form.Account)
-	if err != nil {
-		c.JSON(http.StatusOK, gin.H{
-			"status":  1,
-			"message": "提取失败",
-		})
-		return
-	}
 	if del == "{}" {
 		c.JSON(http.StatusOK, gin.H{
 			"status":  1,
@@ -134,10 +127,29 @@ func DeleteOne(c *gin.Context) {
 		})
 		return
 	}
+
+	var datas *DelData
+	json.Unmarshal([]byte(del), &datas)
+
+	ID := user.(int64)
+	NowTime := time.Now().Unix()
+	datalist.NewStatus = 1
+	datalist.UpDateTime = NowTime
+	datalist.UserID = ID
+	datalist.Password = datas.Password
+
+	_, err = datalist.UpdateImg(form.Account)
+	if err != nil {
+		c.JSON(http.StatusOK, gin.H{
+			"status":  1,
+			"message": "提取失败",
+		})
+		return
+	}
 	c.JSON(http.StatusOK, gin.H{
 		"status":  0,
 		"message": "提取成功6",
-		"data":    del,
+		"data":    datas,
 	})
 }
 
@@ -208,20 +220,24 @@ func DeleteList(c *gin.Context) {
 	}
 	// fmt.Println(form.List)
 	token = token[7:]
-	var temp []string
+	var temp []*DelData
 	ID := user.(int64)
 	NowTime := time.Now().Unix()
+
 	for _, item := range form.List {
+		var datas *DelData
 		del := postIT(item, token, confYaml)
 		// fmt.Println(del)
 		if del != "0" && del != "1" && del != "{}" && !strings.Contains(del, "参数") {
+			json.Unmarshal([]byte(del), &datas)
 			var datalist database.ImgList
 			datalist.NewStatus = 1
 			datalist.UpDateTime = NowTime
 			datalist.UserID = ID
+			datalist.Password = datas.Password
 
 			datalist.UpdateImg(item)
-			temp = append(temp, del)
+			temp = append(temp, datas)
 		}
 	}
 	if len(temp) == 0 {

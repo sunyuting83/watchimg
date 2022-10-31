@@ -5,6 +5,7 @@ type ImgList struct {
 	ID         int64  `json:"id" gorm:"primary_key, column:id"`
 	Account    string `json:"account" gorm:"varchar(128);index:idx_account_id;column:account"`
 	Cover      string `json:"cover" gorm:"column:cover"`
+	Password   string `json:"password" gorm:"column:password"`
 	Today      int64  `json:"today" gorm:"column:today"`
 	NewStatus  int64  `json:"new_status" gorm:"column:new_status"`
 	UserID     int64  `json:"user_id" gorm:"column:user_id"`
@@ -17,6 +18,7 @@ type ImgLists struct {
 	ID         int64  `json:"id" gorm:"primary_key, column:id"`
 	Account    string `json:"account" gorm:"varchar(128);index:idx_account_id;column:account"`
 	Cover      string `json:"cover" gorm:"column:cover"`
+	Password   string `json:"password" gorm:"column:password"`
 	Today      int64  `json:"today" gorm:"column:today"`
 	NewStatus  int64  `json:"new_status" gorm:"column:new_status"`
 	UserName   string `json:"username" gorm:"column:username"`
