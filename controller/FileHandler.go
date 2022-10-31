@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -19,7 +18,7 @@ import (
 // Node node
 type Node struct {
 	Gold     string `form:"gold" json:"gold" xml:"gold"  binding:"required"`
-	Multiple int64  `form:"multiple" json:"multiple" xml:"multiple"  binding:"required"`
+	Multiple string `form:"multiple" json:"multiple" xml:"multiple"  binding:"required"`
 }
 
 func FileHandler(c *gin.Context) {
@@ -85,7 +84,7 @@ func FileHandler(c *gin.Context) {
 			// fmt.Println("yi1")
 			// fmt.Println(gold)
 		} else {
-			fmt.Println(goldstr)
+			// fmt.Println(goldstr)
 			n, _ := strconv.ParseInt(goldstr, 10, 64)
 			gold = n * 100000000
 			// fmt.Println("yi2")
@@ -139,13 +138,14 @@ func FileHandler(c *gin.Context) {
 		})
 		return
 	}
+	Multiple, _ := strconv.ParseInt(form.Multiple, 10, 64)
 	newTime := nowTime.Unix()
 	var imglist database.ImgList
 	account, err := imglist.GetImgOne(fileNameList[0])
 	imglist.Account = fileNameList[0]
 	imglist.Cover = toDBPath
 	imglist.Today = gold
-	imglist.Multiple = form.Multiple
+	imglist.Multiple = Multiple
 
 	timeobj := time.Unix(int64(account.DateTime), 0)
 	olDate := timeobj.Format("20060102")
