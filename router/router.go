@@ -18,6 +18,8 @@ func InitRouter(SECRET_KEY, CurrentPath string) *gin.Engine {
 		api.POST("/upimg", controller.FileHandler)
 		api.GET("/data", utils.VerifyMiddleware(), controller.GetData)
 		api.GET("/odata", utils.VerifyMiddleware(), controller.GetOldData)
+		api.GET("/datetime", utils.VerifyMiddleware(), controller.GetDateTimeData)
+		api.GET("/search", utils.VerifyMiddleware(), controller.GetSearch)
 		api.DELETE("/delone", utils.VerifyMiddleware(), controller.DeleteOne)
 		api.DELETE("/delist", utils.VerifyMiddleware(), controller.DeleteList)
 		api.POST("/login", controller.Sgin)

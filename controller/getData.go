@@ -54,3 +54,54 @@ func GetOldData(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, Data)
 }
+
+func GetDateTimeData(c *gin.Context) {
+	// var datalist database.ImgList
+	var st string = c.DefaultQuery("status", "0")
+	var date string = c.DefaultQuery("date", "0")
+	dateList, err := database.GetDateTimeData(st)
+	if err != nil {
+		c.JSON(http.StatusOK, gin.H{
+			"status":  0,
+			"message": "失败",
+		})
+		return
+	}
+	var datayList []*database.ImgLists
+	var dataList []*database.ImgList
+	if len(dateList) > 0 {
+		if len(date) <= 0 || date == "0" {
+			date = dateList[0]
+		}
+
+		if st == "1" {
+			datayList, err = database.GetDateTimeDataYList(date)
+			// fmt.Println(datayList)
+		} else {
+			dataList, err = database.GetDateTimeDataNList(date)
+		}
+		if err != nil {
+			c.JSON(http.StatusOK, gin.H{
+				"status":  0,
+				"message": "失败",
+			})
+			return
+		}
+	}
+
+	// fmt.Println(dataList)
+	Data := gin.H{
+		"status":   1,
+		"datelist": dateList,
+		"data":     dataList,
+	}
+
+	if st == "1" {
+		Data = gin.H{
+			"status":   1,
+			"datelist": dateList,
+			"data":     datayList,
+		}
+	}
+	c.JSON(http.StatusOK, Data)
+}

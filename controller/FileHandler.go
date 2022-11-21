@@ -19,6 +19,7 @@ import (
 type Node struct {
 	Gold     string `form:"gold" json:"gold" xml:"gold"  binding:"required"`
 	Multiple string `form:"multiple" json:"multiple" xml:"multiple"  binding:"required"`
+	ExpTime  string `form:"exptime" json:"exptime" xml:"exptime"  binding:"required"`
 }
 
 func FileHandler(c *gin.Context) {
@@ -110,15 +111,23 @@ func FileHandler(c *gin.Context) {
 	}
 	fileNameList := strings.Split(fileName, ".")
 
+	if len(fileNameList[0]) == 0 {
+		c.JSON(http.StatusOK, gin.H{
+			"status":  0,
+			"message": "6上传文件失败",
+		})
+		return
+	}
+
 	nowTime := time.Now()
 	timeStr := nowTime.Format("20060102")
 	// fileName = strings.Join([]string{fileNameList[0], "_", gold, ".", fileNameList[1]}, "")
-	// Path := strings.Join([]string{"upimg", timeStr}, SplitString)
+	Path := strings.Join([]string{"upimg", timeStr}, SplitString)
 	// fmt.Println(Path)
-	imgPath := strings.Join([]string{"upimg", fileName}, SplitString)
-	// toDBPath := strings.Join([]string{"/static", timeStr}, "/")
-	toDBPath := strings.Join([]string{"/static", fileName}, "/")
-	// fmt.Println(imgPath)
+	imgPath := strings.Join([]string{Path, fileName}, SplitString)
+	toDBPath := strings.Join([]string{"/static", timeStr}, "/")
+	toDBPath = strings.Join([]string{toDBPath, fileName}, "/")
+
 	check := utils.IsExist("upimg")
 	if !check {
 		err := os.MkdirAll("upimg", 0766)
@@ -146,6 +155,9 @@ func FileHandler(c *gin.Context) {
 	imglist.Cover = toDBPath
 	imglist.Today = gold
 	imglist.Multiple = Multiple
+	imglist.NewStatus = 0
+	imglist.ExpTime = form.ExpTime
+	imglist.NewStatus = 0
 
 	timeobj := time.Unix(int64(account.DateTime), 0)
 	olDate := timeobj.Format("20060102")

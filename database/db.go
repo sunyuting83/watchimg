@@ -85,5 +85,16 @@ func InitDB(d string) {
 		}
 	}
 
+	sql5 := `select * from sqlite_master where name='` + tableName + `' and sql like '%expdate%'`
+	row5 := Eloquent.Raw(sql5).Row()
+	err = row5.Scan(&c)
+	if err != nil {
+		if strings.Contains(err.Error(), "no rows") {
+			sql := `alter table ` + tableName + ` add expdate VARCHAR`
+			fmt.Println(sql)
+			Eloquent.Exec(sql)
+		}
+	}
+
 	Eloquent.SingularTable(true)
 }
