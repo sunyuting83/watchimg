@@ -16,11 +16,11 @@ func GetSearch(c *gin.Context) {
 		dataList  []*database.ImgList
 		err       error
 	)
-	if st == "1" {
-		datayList, err = datalist.SearchKeyY(key)
+	if st == "0" {
+		dataList, err = datalist.SearchKey(key)
 		// fmt.Println(datayList)
 	} else {
-		dataList, err = datalist.SearchKey(key)
+		datayList, err = datalist.SearchKeyY(key, st)
 	}
 	if err != nil {
 		c.JSON(http.StatusOK, gin.H{
@@ -33,13 +33,13 @@ func GetSearch(c *gin.Context) {
 	// fmt.Println(dataList)
 	Data := gin.H{
 		"status": 1,
-		"data":   dataList,
+		"data":   datayList,
 	}
 
-	if st == "1" {
+	if st == "0" {
 		Data = gin.H{
 			"status": 1,
-			"data":   datayList,
+			"data":   dataList,
 		}
 	}
 	c.JSON(http.StatusOK, Data)

@@ -6,6 +6,20 @@
         <div class="column">
           <div class="field is-grouped">
             <p class="control is-expanded">
+              <input class="input is-small" type="text" v-model="SearchDatekey" placeholder="输入日期" @input="SearchDate">
+            </p>
+            <p class="control">
+              <button class="button is-small is-info" :disabled="SearchDatekey.length > 0 ? false : true" @click="Clean">
+                清空结果
+              </button>
+            </p>
+          </div>
+        </div>
+      </nav>
+      <nav class="columns">
+        <div class="column">
+          <div class="field is-grouped">
+            <p class="control is-expanded">
               <input class="input is-small" type="text" v-model="SearchKey" placeholder="输入帐号" @input="Search">
             </p>
             <p class="control">
@@ -16,25 +30,43 @@
           </div>
         </div>
       </nav>
-      <div class="card events-card">
+      <div class="card events-card" v-if="loading">
         <header class="card-header">
           <p class="card-header-title">
-            <span v-if="SearchKey.length == 0">{{title}}卡号列表<span class="ml-5">帐号总数：</span><span class="has-text-danger-dark" v-if="total !== 0">{{total}}</span></span>
+            努力加载中.....
           </p>
-          <button class="buttons are-small card-header-icon" aria-label="more options">
-            <button class="button is-primary is-light" @click="gotoDate">日期排列</button>
-          </button>
         </header>
-        <div class="card-content">
-          <div class="content has-text-centered	min-heights" style="min-height: 11.3rem">
+        <div class="content has-text-centered	min-heights" style="min-height: 11.3rem">
             <div class="com__box" v-if="loading" :style="loading? 'margin-top:5rem':''">
               <LoadIng></LoadIng>
             </div>
-            <div v-else>
-              <div v-if="data.length <= 0">
-                <EmptyEd></EmptyEd>
+        </div>
+      </div>
+      <div v-else>
+        <div class="card events-card" v-if="data.length <= 0">
+          <header class="card-header">
+            <p class="card-header-title">
+              空空如也
+            </p>
+          </header>
+          <div class="card-content">
+            <div class="content has-text-centered	min-heights" style="min-height: 11.3rem">
+              <EmptyEd></EmptyEd>
+            </div>
+          </div>
+        </div>
+        <div class="card events-card mt-5"  v-else>
+          <header class="card-header">
+            <p class="card-header-title">
+              <span v-if="SearchKey.length == 0">{{title}}卡号列表-日期：<span class="has-text-link-dark mr-5">{{datelist[currentPage]}}</span></span> 当日帐号总数：<span class="has-text-danger-dark">{{data.length}}</span>
+            </p>
+              <div class="buttons are-small card-header-icon">
+                <button class="button is-warning is-light" @click="gotoAccount">金币排列</button>
               </div>
-              <table class="table is-striped is-hoverable is-fullwidth is-narrow has-text-left" v-else>
+          </header>
+          <div class="card-content">
+            <div class="content has-text-centered	min-heights" style="min-height: 11.3rem">
+              <table class="table is-striped is-hoverable is-fullwidth is-narrow has-text-left">
                 <thead>
                   <tr>
                     <td><label class="checkbox"><input type="checkbox" @click="checkall" />全选</label></td>
@@ -50,31 +82,45 @@
                   <tr>
                     <td>选择</td>
                     <td>帐号</td>
-                    <td>今日金币</td>
+                    <td>
+                      <span style="cursor: pointer" @click="sortTable">
+                        今日金币
+                        <span class="icon is-small">
+                          <i class="fa" :class="goldSort?'fa-angle-up':'fa-angle-down'"></i>
+                        </span>
+                      </span>
+                    </td>
                     <td>昨日金币</td>
                     <td>炮台倍数</td>
                     <td>金币截图</td>
                     <td>到期时间</td>
-                    <td>日期</td>
+                    <td>
+                      <span style="cursor: pointer" @click="sortDatetime">
+                        日期
+                        <span class="icon is-small">
+                          <i class="fa" :class="dateSort?'fa-angle-up':'fa-angle-down'"></i>
+                        </span>
+                      </span>
+                    </td>
                     <td>操作</td>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="(item) in data" :key="item.id" @mouseover="setBackage(true,item.cover)" @mouseout="setBackage(false,'')">
-                    <td><input type="checkbox" v-model="item.check" @click="(e)=>checkBox(e,item.account)"></td>
-                    <td>{{item.account}}</td>
-                    <td>{{makeNumber(item.today)}}</td>
-                    <td>{{makeNumber(item.yesterday)}}</td>
-                    <td>{{item.multiple}}</td>
-                    <td><DefaultImg :img-url="rootUrl + item.cover" img-style="statesimg" ></DefaultImg></td>
-                    <td>{{item.expdate}}</td>
-                    <td><FormaTime :DateTime="item.datetime"></FormaTime></td>
+                  <tr v-for="(it) in data" :key="it.id" @mouseover="()=>setBackage(true,it.cover)" @mouseout="()=>setBackage(false,'')">
+                    <td><input type="checkbox" v-model="it.check" @click="(e)=>checkBox(e,it.account)"></td>
+                    <td>{{it.account}}</td>
+                    <td>{{makeNumber(it.today)}}</td>
+                    <td>{{makeNumber(it.yesterday)}}</td>
+                    <td>{{it.multiple}}</td>
+                    <!-- <td><DefaultImg :img-url="rootUrl + it.cover" img-style="thisimg" ></DefaultImg></td> -->
+                    <td>{{it.expdate}}</td>
+                    <td><FormaTime :DateTime="it.datetime"></FormaTime></td>
                     <td>
                       <div class="buttons are-small">
-                        <button class="button is-danger" @click="delit(item.account)">
+                        <button class="button is-danger" @click="delit(it.account)">
                           删除帐号
                         </button>
-                        <button class="button is-info" @click="delit(item.account)">
+                        <button class="button is-info" @click="delit(it.account)">
                           提取帐号
                         </button>
                       </div>
@@ -87,60 +133,71 @@
         </div>
       </div>
 
-      <PaginAtion v-if="data.length > 0  && SearchKey.length == 0" :total="total" :number="100" :GetData="GetData"></PaginAtion>
-    </div>
-    <NotIfication
+      <PaginAtion v-if="data.length > 0 && SearchKey.length == 0" :total="total" :number="pageNumber" :GetData="makePageData"></PaginAtion>
+      <NotIfication
       :showData="openerr" />
-    <RenewalCard
-      :showData="openModal"
-      :ShowMessage="ShowMessage" />
-    <ListData
-      :showData="arrayModal"
-      :Close="closeArray"
-      :ShowMessage="ShowMessage" />
-    <div class="is-img" :style="{top:hoverTop+'px'}" v-if="imghover"><DefaultImg :img-url="rootUrl + currentImg"></DefaultImg></div>
-    
+      <RenewalCard
+        :showData="openModal"
+        :ShowMessage="ShowMessage" />
+      <ListData
+        :showData="arrayModal"
+        :Close="closeArray"
+        :ShowMessage="ShowMessage" />
+    </div>
+    <!-- <div class="is-img" :style="{top:hoverTop+'px'}" v-if="imghover"><DefaultImg :img-url="rootUrl + currentImg"></DefaultImg></div> -->
   </div>
 </template>
 <script>
 import { reactive, toRefs, defineComponent, onBeforeMount } from 'vue'
 import { useRouter } from 'vue-router'
+import useClipboard from 'vue-clipboard3'
+const { toClipboard } = useClipboard()
+
 import ManageHeader from '@/components/Other/Header'
 import LoadIng from '@/components/Other/Loading'
 import EmptyEd from '@/components/Other/Empty'
-import NotIfication from "@/components/Other/Notification"
 import PaginAtion from '@/components/Other/PaginAtion'
 import FormaTime from '@/components/Other/FormaTime'
 import RenewalCard from '@/components/Other/Renewal'
 import ListData from '@/components/Other/ListData'
-import DefaultImg from '@/components/Other/DefaultImg'
+import NotIfication from "@/components/Other/Notification"
+// import DefaultImg from '@/components/Other/DefaultImg'
 
 
 import Fetch from '@/helper/fetch'
 import Config from '@/helper/config'
 export default defineComponent({
-  name: 'AccList',
-  components: { ManageHeader, LoadIng, EmptyEd, NotIfication, PaginAtion, FormaTime, RenewalCard, ListData, DefaultImg },
+  name: 'AccdDateList',
+  components: { ManageHeader, LoadIng, EmptyEd, PaginAtion, FormaTime, NotIfication, RenewalCard, ListData },
   setup() {
     const router = useRouter()
     let states = reactive({
       loading: false,
       temp: [],
-      datelist: [],
-      checkTemp: [],
       data: [],
+      checkTemp: [],
+      datelist: [],
+      SearchTemp:[],
       total: 0,
       rootUrl: Config.RootU,
-      path:router.currentRoute.value.path,
       page: [],
       title: "",
+      SearchKey: "",
+      currentImg: '',
+      imghover: false,
+      hoverTop: 0,
+      pageNumber: 1,
+      currentPage: 0,
+      TempCurrentPage: 0,
+      SearchDatekey: "",
+      goldSort: false,
+      dateSort: false,
       openerr: {
         active: false,
         message: "",
         color: "",
         newtime: 0,
       },
-      SearchKey: "",
       openModal:{
         active: false,
         account: {
@@ -152,14 +209,11 @@ export default defineComponent({
       arrayModal:{
         active: false,
         datacount: "",
-      },
-      currentImg: '',
-      imghover: false,
-      hoverTop: 0
+      }
     })
     onBeforeMount(async()=>{
       states.loading = true
-      states.title = "未取"
+      states.title = "未提取"
       document.title = `${Config.GlobalTitle}-${states.title}帐号列表`
       const token = localStorage.getItem("token")
       const data = await Fetch(Config.Api.checklogin, {}, "get", token)
@@ -170,26 +224,30 @@ export default defineComponent({
         router.push("/")
       }
     })
-    const GetData = async(page = 1) => {
-      states.loading = true
-      let url = Config.Api.getdata
+    const GetData = async() => {
+      const page = states.currentPage
+      let url = Config.Api.datetime
+      let date = states.datelist[page]
+      if ( date == undefined ) date = ""
+      url = `${url}?status=0&date=${date}`
       const token = localStorage.getItem("token")
-      const d = await Fetch(url, {page:page}, 'GET', token)
       states.loading = true
+      const d = await Fetch(url, {}, 'GET', token)
       if (d.status == 1) {
         states.data = d.data.map((e)=>{
           e.check = false
           return e
         })
+        states.datelist = d.datelist
         states.temp = d.data
-        states.total = d.total
+        states.total = d.datelist.length
+        states.currentPage = page
         states.loading = false
       }else{
         states.data = []
         states.total = 0
         states.page = []
         states.loading = false
-        localStorage.removeItem("token")
       }
     }
     const Search = async() => {
@@ -217,10 +275,9 @@ export default defineComponent({
     }
     const Clean = () => {
       states.SearchKey = ""
+      states.SearchDatekey = ""
       states.data = states.temp
-    }
-    const ShowMessage = (e) => {
-      states.openerr = e
+      states.currentPage = states.TempCurrentPage
     }
 
     const makeNumber = (n) =>{
@@ -238,6 +295,71 @@ export default defineComponent({
       }
       return x
     }
+    const setBackage = (hover,img) => {
+      states.currentImg = img
+      states.imghover = hover
+      let  scrollTop = document.documentElement.scrollTop || window.pageYOffset || document.body.scrollTop;
+      states.hoverTop = scrollTop + 60
+    }
+    const makePageData = (page) => {
+      states.currentPage = page - 1
+      states.SearchKey = ""
+      states.SearchDatekey = ""
+      GetData(page)
+    }
+    const SearchDate = async() => {
+      const search = states.SearchDatekey
+      if (search) {
+        let url = Config.Api.datetime
+        let date = search
+        if ( date == undefined ) date = ""
+        url = `${url}?status=0&date=${date}`
+        const token = localStorage.getItem("token")
+        states.loading = true
+        const d = await Fetch(url, {}, 'GET', token)
+        let page = 0
+        states.datelist.map((el,i) => {
+          if (el == search) page = i
+        })
+        if (d.status == 1) {
+          states.data = d.data
+          states.datelist = d.datelist
+          // console.log(page)
+
+          states.TempCurrentPage = states.currentPage
+          // const NewData = makData(d.data)
+          // states.SearchTemp = d.data
+          states.total = d.datelist.length
+          states.currentPage = page
+          states.loading = false
+        }else{
+          states.data = []
+          states.total = 0
+          states.page = []
+          states.loading = false
+        }
+      }
+    }
+    const sortTable = () => {
+      states.goldSort = !states.goldSort
+      states.data.sort((a, b)=>{
+        if (states.goldSort) {
+          return a.today - b.today
+        }else{
+          return b.today - a.today
+        }
+      })
+    }
+    const sortDatetime = () => {
+      states.dateSort = !states.dateSort
+      states.data.sort((a, b)=>{
+          if (states.dateSort) {
+            return a.updatetime - b.updatetime
+          }else{
+            return b.updatetime - a.updatetime
+          }
+        })
+    }
     const makeNumberINT = (n) =>{
       let x = "0"
       if ((n+"").length >= 9 && n !== 0) {
@@ -253,13 +375,27 @@ export default defineComponent({
       }
       return x
     }
+    const ShowMessage = (e) => {
+      states.openerr = e
+    }
+    const copyIt = async() => {
+      const d = states.data
+      let t = []
+      d.map(el=>{
+        t = [...t, `${el.account}\t${el.password}\t${makeNumberINT(el.today)}\t${el.multiple}`]
+      })
+      const dd = t.join("\r\n")
+      await toClipboard(dd)
+      const e = {
+        active: true,
+        message: "复制帐号成功",
+        color: "is-success"
+      }
+      ShowMessage(e)
+    }
 
-    const setBackage = (hover,img) => {
-      states.currentImg = img
-      states.imghover = hover
-      let  scrollTop = document.documentElement.scrollTop || window.pageYOffset || document.body.scrollTop;
-      if (scrollTop <= 61) scrollTop = 62
-      states.hoverTop = scrollTop
+    const gotoAccount = () => {
+      router.push("acclist")
     }
 
     const checkBox = (e, account) => {
@@ -386,13 +522,8 @@ export default defineComponent({
         ShowMessage(e)
       }
     }
-
     const closeArray = () => {
       location.reload()
-    }
-
-    const gotoDate = () => {
-      router.push("accdatelist")
     }
 
     return {
@@ -400,22 +531,27 @@ export default defineComponent({
       GetData,
       Search,
       Clean,
-      ShowMessage,
       makeNumber,
       setBackage,
+      makePageData,
+      SearchDate,
+      sortTable,
+      sortDatetime,
+      copyIt,
+      gotoAccount,
       checkBox,
       checkall,
       delit,
-      closeArray,
       getall,
-      gotoDate
+      ShowMessage,
+      closeArray
     }
   },
 })
 </script>
 
 <style scoped>
-.statesimg {
+.thisimg {
   width: 150px;
   height: 30px;
   max-width: 150px;

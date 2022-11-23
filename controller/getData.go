@@ -74,11 +74,11 @@ func GetDateTimeData(c *gin.Context) {
 			date = dateList[0]
 		}
 
-		if st == "1" {
-			datayList, err = database.GetDateTimeDataYList(date)
+		if st == "0" {
+			dataList, err = database.GetDateTimeDataNList(date)
 			// fmt.Println(datayList)
 		} else {
-			dataList, err = database.GetDateTimeDataNList(date)
+			datayList, err = database.GetDateTimeDataYList(date, st)
 		}
 		if err != nil {
 			c.JSON(http.StatusOK, gin.H{
@@ -93,14 +93,14 @@ func GetDateTimeData(c *gin.Context) {
 	Data := gin.H{
 		"status":   1,
 		"datelist": dateList,
-		"data":     dataList,
+		"data":     datayList,
 	}
 
-	if st == "1" {
+	if st == "0" {
 		Data = gin.H{
 			"status":   1,
 			"datelist": dateList,
-			"data":     datayList,
+			"data":     dataList,
 		}
 	}
 	c.JSON(http.StatusOK, Data)

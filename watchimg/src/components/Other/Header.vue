@@ -8,11 +8,14 @@
       </div>
       <div id="navMenu" class="navbar-menu">
         <div class="navbar-start">
-          <router-link class="navbar-item" :class="path === 'acclist'?'is-active':''" to="acclist">
+          <router-link class="navbar-item" :class="path === 'acclist' || path === 'accdatelist'?'is-active':''" to="acclist">
             未提取帐号
           </router-link>
           <router-link class="navbar-item" :class="path === 'acclistd'?'is-active':''" to="acclistd">
             已提取帐号
+          </router-link>
+          <router-link class="navbar-item" :class="path === 'banacclist'?'is-active':''" to="banacclist">
+            提取失败帐号
           </router-link>
         </div>
       </div>

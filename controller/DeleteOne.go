@@ -223,14 +223,14 @@ func DeleteList(c *gin.Context) {
 	var temp []*DelData
 	ID := user.(int64)
 	NowTime := time.Now().Unix()
-
+	var datalist database.ImgList
 	for _, item := range form.List {
 		var datas *DelData
 		del := postIT(item, token, confYaml)
 		// fmt.Println(del)
 		if del != "0" && del != "1" && del != "{}" && !strings.Contains(del, "参数") {
 			json.Unmarshal([]byte(del), &datas)
-			var datalist database.ImgList
+
 			datalist.NewStatus = 1
 			datalist.UpDateTime = NowTime
 			datalist.UserID = ID
@@ -238,6 +238,16 @@ func DeleteList(c *gin.Context) {
 
 			datalist.UpdateImg(item)
 			temp = append(temp, datas)
+		} else {
+			if del != "{}" {
+				json.Unmarshal([]byte(del), &datas)
+
+				datalist.NewStatus = 2
+				datalist.UpDateTime = NowTime
+				datalist.UserID = ID
+				datalist.UpdateImg(item)
+				temp = append(temp, datas)
+			}
 		}
 	}
 	if len(temp) == 0 {

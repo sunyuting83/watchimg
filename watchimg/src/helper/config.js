@@ -19,6 +19,8 @@ const Api = {
   'getodata': `${RootUrl}odata`,
   'delone': `${RootUrl}delone`,
   'delist': `${RootUrl}delist`,
+  'datetime': `${RootUrl}datetime`,
+  'search': `${RootUrl}search`,
 }
 
 const makePopeData = (e, message, active = true)=> {

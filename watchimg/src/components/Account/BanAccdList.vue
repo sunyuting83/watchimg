@@ -58,7 +58,7 @@
         <div class="card events-card mt-5"  v-else>
           <header class="card-header">
             <p class="card-header-title">
-              <span v-if="SearchKey.length == 0">{{title}}卡号列表-日期：<span class="has-text-link-dark mr-5">{{datelist[currentPage]}}</span></span> 帐号总数：<span class="has-text-danger-dark">{{data.length}}</span>
+              <span v-if="SearchKey.length == 0">{{title}}卡号列表-提号日期：<span class="has-text-link-dark mr-5">{{datelist[currentPage]}}</span></span> 帐号总数：<span class="has-text-danger-dark">{{data.length}}</span>
             </p>
               <div class="buttons are-small card-header-icon">
                 <button class="button is-success" @click="copyIt">
@@ -73,7 +73,6 @@
                   <tr>
                     <td>编号</td>
                     <td>帐号</td>
-                    <td>密码</td>
                     <td>
                       <span style="cursor: pointer" @click="sortTable">
                         今日金币
@@ -86,8 +85,16 @@
                     <td>金币截图</td>
                     <td>提号人</td>
                     <td>
+                      <span style="cursor: pointer" @click="sortDatetimes">
+                        刷号日期
+                        <span class="icon is-small">
+                          <i class="fa" :class="dateSort?'fa-angle-up':'fa-angle-down'"></i>
+                        </span>
+                      </span>
+                    </td>
+                    <td>
                       <span style="cursor: pointer" @click="sortDatetime">
-                        日期
+                        提号日期
                         <span class="icon is-small">
                           <i class="fa" :class="dateSort?'fa-angle-up':'fa-angle-down'"></i>
                         </span>
@@ -99,11 +106,11 @@
                   <tr v-for="(it,index) in data" :key="it.id" @mouseover="()=>setBackage(true,it.cover)" @mouseout="()=>setBackage(false,'')">
                     <td>{{index}}</td>
                     <td>{{it.account}}</td>
-                    <td>{{it.password}}</td>
                     <td>{{makeNumber(it.today)}}</td>
                     <td>{{it.multiple}}</td>
                     <td><DefaultImg :img-url="rootUrl + it.cover" img-style="thisimg" ></DefaultImg></td>
                     <td>{{it.username}}</td>
+                    <td><FormaTime :DateTime="it.datetime"></FormaTime></td>
                     <td><FormaTime :DateTime="it.updatetime"></FormaTime></td>
                   </tr>
                 </tbody>
@@ -138,7 +145,7 @@ import DefaultImg from '@/components/Other/DefaultImg'
 import Fetch from '@/helper/fetch'
 import Config from '@/helper/config'
 export default defineComponent({
-  name: 'AccdList',
+  name: 'BanAccdList',
   components: { ManageHeader, LoadIng, EmptyEd, PaginAtion, FormaTime, NotIfication, DefaultImg },
   setup() {
     const router = useRouter()
@@ -171,7 +178,7 @@ export default defineComponent({
     })
     onBeforeMount(async()=>{
       states.loading = true
-      states.title = "已取"
+      states.title = "提取失败"
       document.title = `${Config.GlobalTitle}-${states.title}帐号列表`
       const token = localStorage.getItem("token")
       const data = await Fetch(Config.Api.checklogin, {}, "get", token)
@@ -187,7 +194,7 @@ export default defineComponent({
       let url = Config.Api.datetime
       let date = states.datelist[page]
       if ( date == undefined ) date = ""
-      url = `${url}?status=1&date=${date}`
+      url = `${url}?status=2&date=${date}`
       const token = localStorage.getItem("token")
       states.loading = true
       const d = await Fetch(url, {}, 'GET', token)
@@ -213,7 +220,7 @@ export default defineComponent({
         let url = Config.Api.search
         let date = search
         if ( date == undefined ) date = ""
-        url = `${url}?status=1&key=${date}`
+        url = `${url}?status=2&key=${date}`
         const token = localStorage.getItem("token")
         states.loading = true
         const d = await Fetch(url, {}, 'GET', token)
@@ -252,64 +259,6 @@ export default defineComponent({
       }
       return x
     }
-/*
-    const FormatTime = (timestamp) => {
-      const date = new Date(timestamp * 1000);
-      const Y = date.getFullYear()
-      const M = (date.getMonth()+1 < 10 ? '0'+(date.getMonth()+1) : date.getMonth()+1)
-      const D = date.getDate()
-      return `${Y}-${M}-${D}`
-    }
-
-    const makData = (data) => {
-      let date = []
-      let newData= []
-      data.forEach(el => {
-        date = [...date, FormatTime(el.updatetime)]
-      })
-      date = [... new Set(date)]
-      date = quickSort(date)
-      date.forEach((e) => {
-        let newDate = {
-          date: e,
-          data: []
-        }
-        data.forEach(el => {
-          if (e == FormatTime(el.updatetime)) {
-            newDate.data = [...newDate.data, el]
-          }
-        })
-        newData = [...newData, newDate]
-      })
-      return newData
-    }
-
-    const quickSort = (arr, s = true) => {
-      if (arr.length <= 1) {
-        return arr
-      }
-      let pivotIndex = Math.floor(arr.length / 2)
-      let pivot = arr.splice(pivotIndex, 1)[0]
-      let left = []
-      let right = []
-      for (let i = 0; i < arr.length; i++) {
-        if (s) {
-          if (arr[i] > pivot) {
-            left.push(arr[i])
-          } else {
-            right.push(arr[i])
-          }
-        }else {
-          if (arr[i] < pivot) {
-            left.push(arr[i])
-          } else {
-            right.push(arr[i])
-          }
-        }
-      }
-      return quickSort(left).concat([pivot], quickSort(right))
-    }
-*/
     const setBackage = (hover,img) => {
       states.currentImg = img
       states.imghover = hover
@@ -328,7 +277,7 @@ export default defineComponent({
         let url = Config.Api.datetime
         let date = search
         if ( date == undefined ) date = ""
-        url = `${url}?status=1&date=${date}`
+        url = `${url}?status=2&date=${date}`
         const token = localStorage.getItem("token")
         states.loading = true
         const d = await Fetch(url, {}, 'GET', token)
@@ -368,12 +317,22 @@ export default defineComponent({
     const sortDatetime = () => {
       states.dateSort = !states.dateSort
       states.data.sort((a, b)=>{
-          if (states.dateSort) {
-            return a.updatetime - b.updatetime
-          }else{
-            return b.updatetime - a.updatetime
-          }
-        })
+        if (states.dateSort) {
+          return a.updatetime - b.updatetime
+        }else{
+          return b.updatetime - a.updatetime
+        }
+      })
+    }
+    const sortDatetimes = () => {
+      states.dateSort = !states.dateSort
+      states.data.sort((a, b)=>{
+        if (states.dateSort) {
+          return a.datetime - b.datetime
+        }else{
+          return b.datetime - a.datetime
+        }
+      })
     }
     const makeNumberINT = (n) =>{
       let x = "0"
@@ -420,6 +379,7 @@ export default defineComponent({
       SearchDate,
       sortTable,
       sortDatetime,
+      sortDatetimes,
       copyIt
     }
   },

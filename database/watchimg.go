@@ -133,18 +133,18 @@ func (datalist *ImgList) DeleteOne(account string) {
 
 // Get DateTime Data
 func GetDateTimeData(status string) (re []string, err error) {
-	var d string = "datetime"
-	if status == "1" {
-		d = "updatetime"
+	var d string = "updatetime"
+	if status == "0" {
+		d = "datetime"
 	}
-	sql := "SELECT DISTINCT DATE(" + d + ",'unixepoch'),new_status FROM imageData WHERE new_status = " + status + " ORDER BY " + d + " DESC"
+	sql := "SELECT DISTINCT DATE(" + d + ",'unixepoch','localtime'),new_status FROM imageData WHERE new_status = " + status + " ORDER BY " + d + " DESC"
 	re, err = RawQuerySearchAndParseToMap(Eloquent, sql)
 	return
 }
 
 // Get DateTime Data
 func GetDateTimeDataNList(date string) (list []*ImgList, err error) {
-	sql := "SELECT * from imageData where DATE(datetime,'unixepoch') = '" + date + "' AND new_status = 0"
+	sql := "SELECT * from imageData where DATE(datetime,'unixepoch','localtime') = '" + date + "' AND new_status = 0"
 	// fmt.Println(sql)
 	if err = Eloquent.
 		Raw(sql).
@@ -154,8 +154,8 @@ func GetDateTimeDataNList(date string) (list []*ImgList, err error) {
 	}
 	return
 }
-func GetDateTimeDataYList(date string) (list []*ImgLists, err error) {
-	sql := `SELECT s.*,t.username FROM imageData AS s INNER JOIN user AS t WHERE s.new_status = 1 AND s.user_id = t.id AND DATE(s.updatetime,'unixepoch') = '` + date + "'"
+func GetDateTimeDataYList(date, st string) (list []*ImgLists, err error) {
+	sql := `SELECT s.*,t.username FROM imageData AS s INNER JOIN user AS t WHERE s.new_status = ` + st + ` AND s.user_id = t.id AND DATE(s.updatetime,'unixepoch','localtime') = '` + date + "'"
 	// sql := "SELECT * from imageData where DATE(updatetime,'unixepoch') = '" + date + "' AND new_status = 1"
 	// fmt.Println(sql)
 	if err = Eloquent.
@@ -179,8 +179,8 @@ func (search *ImgList) SearchKey(key string) (searchs []*ImgList, err error) {
 }
 
 // SearchKey 列表
-func (imglist *ImgList) SearchKeyY(key string) (searchs []*ImgLists, err error) {
-	sql := `SELECT s.*,t.username FROM imageData AS s INNER JOIN user AS t WHERE s.new_status = 1 AND s.user_id = t.id AND s.account LIKE '` + key + "%'"
+func (imglist *ImgList) SearchKeyY(key, st string) (searchs []*ImgLists, err error) {
+	sql := `SELECT s.*,t.username FROM imageData AS s INNER JOIN user AS t WHERE s.new_status = ` + st + ` AND s.user_id = t.id AND s.account LIKE '%` + key + "%'"
 	if err = Eloquent.
 		Raw(sql).
 		Order("s.id").
@@ -237,7 +237,7 @@ func RawQuerySearchAndParseToMap(db *gorm.DB, query string) ([]string, error) {
 	//將byte array轉換為字串
 	for index := range list {
 		for _, column := range columns {
-			if column == "DATE(datetime,'unixepoch')" || column == "DATE(updatetime,'unixepoch')" {
+			if column == "DATE(datetime,'unixepoch','localtime')" || column == "DATE(updatetime,'unixepoch','localtime')" {
 				list[index][column] = list[index][column].(string)
 				l = append(l, list[index][column].(string))
 			}
