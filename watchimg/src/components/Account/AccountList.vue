@@ -69,8 +69,8 @@
                     <td>{{makeNumber(item.yesterday)}}</td>
                     <td>{{item.multiple}}</td>
                     <td><DefaultImg :img-url="rootUrl + item.cover" img-style="statesimg" ></DefaultImg></td>
-                    <td>{{item.expdate}}</td>
-                    <td><FormaTime :DateTime="item.datetime"></FormaTime></td>
+                    <td><ExpTime :DateTime="item.expdate" /></td>
+                    <td><FormaTime :DateTime="item.datetime" /></td>
                     <td>
                       <div class="buttons are-small">
                         <PopoButton
@@ -112,6 +112,7 @@ import EmptyEd from '@/components/Other/Empty'
 import NotIfication from "@/components/Other/Notification"
 import PaginAtion from '@/components/Other/PaginAtion'
 import FormaTime from '@/components/Other/FormaTime'
+import ExpTime from '@/components/Other/ExpTime'
 import RenewalCard from '@/components/Other/Renewal'
 import ListData from '@/components/Other/ListData'
 import PopoButton from '@/components/Other/PopoButton'
@@ -122,7 +123,7 @@ import Fetch from '@/helper/fetch'
 import Config from '@/helper/config'
 export default defineComponent({
   name: 'AccList',
-  components: { ManageHeader, LoadIng, EmptyEd, NotIfication, PaginAtion, FormaTime, RenewalCard, ListData, PopoButton, DefaultImg },
+  components: { ManageHeader, LoadIng, EmptyEd, NotIfication, PaginAtion, FormaTime, RenewalCard, ListData, PopoButton, DefaultImg, ExpTime },
   setup() {
     const router = useRouter()
     let states = reactive({

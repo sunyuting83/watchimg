@@ -17,7 +17,7 @@ type ImgList struct {
 	YesterDay  int64  `json:"yesterday" gorm:"column:yesterday"`
 	UpDateTime int64  `json:"updatetime" gorm:"column:updatetime"`
 	DateTime   int64  `json:"datetime" gorm:"column:datetime"`
-	ExpTime    string `json:"expdate" gorm:"column:expdate"`
+	ExpTime    int64  `json:"expdate" gorm:"column:expdate"`
 }
 type ImgLists struct {
 	ID         int64  `json:"id" gorm:"primary_key, column:id"`
@@ -31,7 +31,7 @@ type ImgLists struct {
 	YesterDay  int64  `json:"yesterday" gorm:"column:yesterday"`
 	UpDateTime int64  `json:"updatetime" gorm:"column:updatetime"`
 	DateTime   int64  `json:"datetime" gorm:"column:datetime"`
-	ExpTime    string `json:"expdate" gorm:"column:expdate"`
+	ExpTime    int64  `json:"expdate" gorm:"column:expdate"`
 }
 
 type DateTimeData struct {

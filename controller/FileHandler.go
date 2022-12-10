@@ -32,14 +32,14 @@ func FileHandler(c *gin.Context) {
 	// This will infer what binder to use depending on the content-type header.
 	if err := c.ShouldBind(&form); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  1,
+			"status":  0,
 			"message": err.Error(),
 		})
 		return
 	}
 	if len(form.Gold) <= 0 {
 		c.JSON(http.StatusUnauthorized, gin.H{
-			"status":  1,
+			"status":  0,
 			"message": "haven't node",
 		})
 		return
@@ -139,16 +139,29 @@ func FileHandler(c *gin.Context) {
 			return
 		}
 	}
+	checks := utils.IsExist(Path)
+	if !checks {
+		err := os.MkdirAll(Path, 0766)
+		if err != nil {
+			c.JSON(http.StatusOK, gin.H{
+				"status":  0,
+				"message": "2上传文件失败",
+			})
+			return
+		}
+	}
 	err = os.WriteFile(imgPath, b, 0644)
 	if err != nil {
 		c.JSON(http.StatusOK, gin.H{
 			"status":  0,
-			"message": "3上传文件失败",
+			"message": err.Error(),
 		})
 		return
 	}
 	Multiple, _ := strconv.ParseInt(form.Multiple, 10, 64)
 	newTime := nowTime.Unix()
+
+	ExpTimeInt, _ := strconv.ParseInt(form.ExpTime, 10, 64)
 	var imglist database.ImgList
 	account, err := imglist.GetImgOne(fileNameList[0])
 	imglist.Account = fileNameList[0]
@@ -156,7 +169,7 @@ func FileHandler(c *gin.Context) {
 	imglist.Today = gold
 	imglist.Multiple = Multiple
 	imglist.NewStatus = 0
-	imglist.ExpTime = form.ExpTime
+	imglist.ExpTime = ExpTimeInt
 	imglist.NewStatus = 0
 
 	timeobj := time.Unix(int64(account.DateTime), 0)

@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"runtime"
+	"strconv"
 	"strings"
 	"time"
 	"worldimg/Client/utils"
@@ -21,46 +22,65 @@ type Status struct {
 }
 
 func postFile(filename, gold, multiple, exptime string, confYaml *utils.Config) {
-	bodyBuf := &bytes.Buffer{}
-	bodyWriter := multipart.NewWriter(bodyBuf)
-	bodyWriter.WriteField("gold", gold)
-	bodyWriter.WriteField("multiple", multiple)
-	bodyWriter.WriteField("exptime", exptime)
-	fileWriter, err := bodyWriter.CreateFormFile("image", filename)
+	file, err := os.Open(filename)
 	if err != nil {
 		fmt.Println("0")
+		return
 	}
+	defer file.Close()
 
-	fh, err := os.Open(filename)
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+	part, err := writer.CreateFormFile("image", filename)
 	if err != nil {
 		fmt.Println("0")
+		return
 	}
-	defer fh.Close()
-
-	//iocopy
-	_, errs := io.Copy(fileWriter, fh)
-	if errs != nil {
-		fmt.Println("0")
-	}
-
-	contentType := bodyWriter.FormDataContentType()
-	bodyWriter.Close()
-
-	resp, err := http.Post(confYaml.Host, contentType, bodyBuf)
+	_, err = io.Copy(part, file)
+	_ = writer.WriteField("gold", gold)
+	_ = writer.WriteField("multiple", multiple)
+	_ = writer.WriteField("exptime", exptime)
+	err = writer.Close()
 	if err != nil {
 		fmt.Println("0")
+		return
+	}
+
+	client := &http.Client{
+		Timeout: time.Duration(10 * time.Second),
+	}
+	req, _ := http.NewRequest("POST", confYaml.Host, body)
+	req.Header.Set("Accept", "*/*")
+	req.Header.Set("Content-Type", writer.FormDataContentType())
+	req.Header.Set("sec-ch-ua-platform", "Windows")
+	req.Header.Set("user-agent", "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36")
+	resp, err := client.Do(req)
+	if err != nil {
+		fmt.Println("0")
+		return
 	}
 	defer resp.Body.Close()
-	body, _ := io.ReadAll(resp.Body)
+	respByte, _ := io.ReadAll(resp.Body)
+
 	var m *Status
-	json.Unmarshal(body, &m)
-	// fmt.Println(m.Status)
+	json.Unmarshal(respByte, &m)
 	if m.Status != 1 {
 		fmt.Println("0")
+		return
 	} else {
 		fmt.Println("1")
+		return
 	}
 	// return nil
+}
+
+func strToDate(date string) (d int64) {
+	var LOC, _ = time.LoadLocation("Asia/Shanghai")
+	res1, err := time.ParseInLocation("2006/01/02 15:04:05", date, LOC)
+	if err != nil {
+		return 0
+	}
+	return res1.Unix()
 }
 
 // sample usage
@@ -90,5 +110,7 @@ func main() {
 		time.Sleep(time.Duration(10) * time.Second)
 		os.Exit(0)
 	}
-	postFile(fileName, gold, multiple, exptime, confYaml)
+	exptimeInt := strToDate(exptime)
+	exptimeStr := strconv.FormatInt(exptimeInt, 10)
+	postFile(fileName, gold, multiple, exptimeStr, confYaml)
 }

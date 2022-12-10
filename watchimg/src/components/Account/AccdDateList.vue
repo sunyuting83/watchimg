@@ -96,7 +96,14 @@
                     <td>昨日金币</td>
                     <td>炮台倍数</td>
                     <td>金币截图</td>
-                    <td>到期时间</td>
+                    <td>
+                      <span style="cursor: pointer" @click="sortExptime">
+                        到期时间
+                        <span class="icon is-small">
+                          <i class="fa" :class="expdateSort?'fa-angle-up':'fa-angle-down'"></i>
+                        </span>
+                      </span>
+                    </td>
                     <td>
                       <span style="cursor: pointer" @click="sortDatetime">
                         日期
@@ -117,8 +124,8 @@
                     <td>{{makeNumber(it.yesterday)}}</td>
                     <td>{{it.multiple}}</td>
                     <td><DefaultImg :img-url="rootUrl + it.cover" img-style="thisimg" ></DefaultImg></td>
-                    <td>{{it.expdate}}</td>
-                    <td><FormaTime :DateTime="it.datetime"></FormaTime></td>
+                    <td><ExpTime :DateTime="it.expdate" /></td>
+                    <td><FormaTime :DateTime="it.datetime" /></td>
                     <td>
                       <div class="buttons are-small">
                         <PopoButton
@@ -161,6 +168,7 @@ import LoadIng from '@/components/Other/Loading'
 import EmptyEd from '@/components/Other/Empty'
 import PaginAtion from '@/components/Other/PaginAtion'
 import FormaTime from '@/components/Other/FormaTime'
+import ExpTime from '@/components/Other/ExpTime'
 import RenewalCard from '@/components/Other/Renewal'
 import ListData from '@/components/Other/ListData'
 import NotIfication from "@/components/Other/Notification"
@@ -172,7 +180,7 @@ import Fetch from '@/helper/fetch'
 import Config from '@/helper/config'
 export default defineComponent({
   name: 'AccdDateList',
-  components: { ManageHeader, LoadIng, EmptyEd, PaginAtion, FormaTime, NotIfication, RenewalCard, ListData, PopoButton, DefaultImg },
+  components: { ManageHeader, LoadIng, EmptyEd, PaginAtion, FormaTime, NotIfication, RenewalCard, ListData, PopoButton, DefaultImg, ExpTime },
   setup() {
     const router = useRouter()
     let states = reactive({
@@ -196,6 +204,7 @@ export default defineComponent({
       SearchDatekey: "",
       goldSort: false,
       dateSort: false,
+      expdateSort: false,
       openerr: {
         active: false,
         message: "",
@@ -357,12 +366,22 @@ export default defineComponent({
     const sortDatetime = () => {
       states.dateSort = !states.dateSort
       states.data.sort((a, b)=>{
-          if (states.dateSort) {
-            return a.datetime - b.datetime
-          }else{
-            return b.datetime - a.datetime
-          }
-        })
+        if (states.dateSort) {
+          return a.datetime - b.datetime
+        }else{
+          return b.datetime - a.datetime
+        }
+      })
+    }
+    const sortExptime = () => {
+      states.expdateSort = !states.expdateSort
+      states.data.sort((a, b)=>{
+        if (states.expdateSort) {
+          return a.expdate - b.expdate
+        }else{
+          return b.expdate - a.expdate
+        }
+      })
     }
     const makeNumberINT = (n) =>{
       let x = "0"
@@ -653,7 +672,8 @@ export default defineComponent({
       ShowMessage,
       closeArray,
       delToSql,
-      delAllSql
+      delAllSql,
+      sortExptime
     }
   },
 })

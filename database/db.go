@@ -90,7 +90,7 @@ func InitDB(d string) {
 	err = row5.Scan(&c)
 	if err != nil {
 		if strings.Contains(err.Error(), "no rows") {
-			sql := `alter table ` + tableName + ` add expdate VARCHAR`
+			sql := `alter table ` + tableName + ` add expdate int default '0'`
 			fmt.Println(sql)
 			Eloquent.Exec(sql)
 		}
