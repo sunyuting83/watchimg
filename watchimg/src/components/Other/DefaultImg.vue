@@ -31,7 +31,7 @@ export default defineComponent({
       newImg.src = defaultimg
     }
     newImg.onload = async() => { // 图片加载成功后把地址给原来的img
-      if(newImg.height < 100) {
+      if(newImg.height < 1) {
         states.url = defaultimg
       }else {
         states.url = newImg.src
