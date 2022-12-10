@@ -21,6 +21,8 @@ const Api = {
   'delist': `${RootUrl}delist`,
   'datetime': `${RootUrl}datetime`,
   'search': `${RootUrl}search`,
+  'delonesql': `${RootUrl}delonesql`,
+  'delallsql': `${RootUrl}delallsql`,
 }
 
 const makePopeData = (e, message, active = true)=> {

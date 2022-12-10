@@ -25,7 +25,7 @@ func DeleteOneSQL(c *gin.Context) {
 		return
 	}
 
-	var delit *database.ImgList
+	var delit database.ImgList
 
 	delit.DeleteOne(form.Account)
 	c.JSON(http.StatusOK, gin.H{
@@ -44,7 +44,7 @@ func DeleteListSQL(c *gin.Context) {
 		return
 	}
 
-	var delit *database.ImgList
+	var delit database.ImgList
 	for _, item := range form.List {
 		delit.DeleteOne(item)
 	}

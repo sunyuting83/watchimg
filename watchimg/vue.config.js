@@ -5,8 +5,7 @@ const cdn = {
   ],
   js: [
     '//lf6-cdn-tos.bytecdntp.com/cdn/expire-1-M/vue/3.2.13/vue.global.min.js',
-    '//cdn.staticfile.org/vue-router/4.1.6/vue-router.global.min.js',
-    '//pv.sohu.com/cityjson?ie=utf-8'
+    '//cdn.staticfile.org/vue-router/4.1.6/vue-router.global.min.js'
   ]
 }
  

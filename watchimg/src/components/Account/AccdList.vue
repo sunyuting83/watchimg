@@ -97,7 +97,7 @@
                 </thead>
                 <tbody>
                   <tr v-for="(it,index) in data" :key="it.id" @mouseover="()=>setBackage(true,it.cover)" @mouseout="()=>setBackage(false,'')">
-                    <td>{{index}}</td>
+                    <td>{{index + 1}}</td>
                     <td>{{it.account}}</td>
                     <td>{{it.password}}</td>
                     <td>{{makeNumber(it.today)}}</td>

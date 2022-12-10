@@ -96,9 +96,15 @@ func DeleteOne(c *gin.Context) {
 		return
 	}
 	token = token[7:]
+	ID := user.(int64)
+	NowTime := time.Now().Unix()
 	var datalist database.ImgList
 	del := postIT(form.Account, token, confYaml)
 	if del == "0" {
+		datalist.NewStatus = 2
+		datalist.UpDateTime = NowTime
+		datalist.UserID = ID
+		datalist.UpdateImg(form.Account)
 		c.JSON(http.StatusOK, gin.H{
 			"status":  1,
 			"message": "提取失败4",
@@ -114,6 +120,10 @@ func DeleteOne(c *gin.Context) {
 	}
 
 	if del == "{}" {
+		datalist.NewStatus = 2
+		datalist.UpDateTime = NowTime
+		datalist.UserID = ID
+		datalist.UpdateImg(form.Account)
 		c.JSON(http.StatusOK, gin.H{
 			"status":  1,
 			"message": "提取失败没数据",
@@ -121,6 +131,10 @@ func DeleteOne(c *gin.Context) {
 		return
 	}
 	if strings.Contains(del, "参数") {
+		datalist.NewStatus = 2
+		datalist.UpDateTime = NowTime
+		datalist.UserID = ID
+		datalist.UpdateImg(form.Account)
 		c.JSON(http.StatusOK, gin.H{
 			"status":  1,
 			"message": "提取失败没数据",
@@ -131,8 +145,6 @@ func DeleteOne(c *gin.Context) {
 	var datas *DelData
 	json.Unmarshal([]byte(del), &datas)
 
-	ID := user.(int64)
-	NowTime := time.Now().Unix()
 	datalist.NewStatus = 1
 	datalist.UpDateTime = NowTime
 	datalist.UserID = ID
@@ -246,7 +258,6 @@ func DeleteList(c *gin.Context) {
 				datalist.UpDateTime = NowTime
 				datalist.UserID = ID
 				datalist.UpdateImg(item)
-				temp = append(temp, datas)
 			}
 		}
 	}

@@ -70,9 +70,11 @@
                 <thead>
                   <tr>
                     <td><label class="checkbox"><input type="checkbox" @click="checkall" />全选</label></td>
-                    <td colspan="7"></td>
+                    <td colspan="8"></td>
                     <td>
                       <div class="buttons are-small">
+                        <PopoButton
+                          message="删除选中帐号" color="is-danger" :callBack="delAllSql"></PopoButton>
                         <button class="button is-info" @click="getall" :disabled="checkTemp.length <= 0">
                           提取选中帐号
                         </button>
@@ -81,6 +83,7 @@
                   </tr>
                   <tr>
                     <td>选择</td>
+                    <td>序号</td>
                     <td>帐号</td>
                     <td>
                       <span style="cursor: pointer" @click="sortTable">
@@ -106,20 +109,20 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="(it) in data" :key="it.id" @mouseover="()=>setBackage(true,it.cover)" @mouseout="()=>setBackage(false,'')">
+                  <tr v-for="(it,index) in data" :key="it.id" @mouseover="()=>setBackage(true,it.cover)" @mouseout="()=>setBackage(false,'')">
                     <td><input type="checkbox" v-model="it.check" @click="(e)=>checkBox(e,it.account)"></td>
+                    <td>{{index + 1}}</td>
                     <td>{{it.account}}</td>
                     <td>{{makeNumber(it.today)}}</td>
                     <td>{{makeNumber(it.yesterday)}}</td>
                     <td>{{it.multiple}}</td>
-                    <!-- <td><DefaultImg :img-url="rootUrl + it.cover" img-style="thisimg" ></DefaultImg></td> -->
+                    <td><DefaultImg :img-url="rootUrl + it.cover" img-style="thisimg" ></DefaultImg></td>
                     <td>{{it.expdate}}</td>
                     <td><FormaTime :DateTime="it.datetime"></FormaTime></td>
                     <td>
                       <div class="buttons are-small">
-                        <button class="button is-danger" @click="delit(it.account)">
-                          删除帐号
-                        </button>
+                        <PopoButton
+                          message="删除帐号" color="is-danger" :callBack="()=>{delToSql(item.account)}"></PopoButton>
                         <button class="button is-info" @click="delit(it.account)">
                           提取帐号
                         </button>
@@ -144,7 +147,7 @@
         :Close="closeArray"
         :ShowMessage="ShowMessage" />
     </div>
-    <!-- <div class="is-img" :style="{top:hoverTop+'px'}" v-if="imghover"><DefaultImg :img-url="rootUrl + currentImg"></DefaultImg></div> -->
+    <div class="is-img" :style="{top:hoverTop+'px'}" v-if="imghover"><DefaultImg :img-url="rootUrl + currentImg"></DefaultImg></div>
   </div>
 </template>
 <script>
@@ -161,14 +164,15 @@ import FormaTime from '@/components/Other/FormaTime'
 import RenewalCard from '@/components/Other/Renewal'
 import ListData from '@/components/Other/ListData'
 import NotIfication from "@/components/Other/Notification"
-// import DefaultImg from '@/components/Other/DefaultImg'
+import PopoButton from '@/components/Other/PopoButton'
+import DefaultImg from '@/components/Other/DefaultImg'
 
 
 import Fetch from '@/helper/fetch'
 import Config from '@/helper/config'
 export default defineComponent({
   name: 'AccdDateList',
-  components: { ManageHeader, LoadIng, EmptyEd, PaginAtion, FormaTime, NotIfication, RenewalCard, ListData },
+  components: { ManageHeader, LoadIng, EmptyEd, PaginAtion, FormaTime, NotIfication, RenewalCard, ListData, PopoButton, DefaultImg },
   setup() {
     const router = useRouter()
     let states = reactive({
@@ -354,9 +358,9 @@ export default defineComponent({
       states.dateSort = !states.dateSort
       states.data.sort((a, b)=>{
           if (states.dateSort) {
-            return a.updatetime - b.updatetime
+            return a.datetime - b.datetime
           }else{
-            return b.updatetime - a.updatetime
+            return b.datetime - a.datetime
           }
         })
     }
@@ -443,6 +447,9 @@ export default defineComponent({
         states.page = []
         localStorage.removeItem("token")
       }else if (data.status == 1) {
+        states.data = states.data.filter((e)=> {
+          return e.account != account
+        })
         ShowMessage(e)
       }else {
         if (data.data !== "{}") {
@@ -460,8 +467,44 @@ export default defineComponent({
           states.openModal.atest = d
           states.checkTemp = []
         }else{
+          states.data = states.data.filter((e)=> {
+            return e.account != account
+          })
           ShowMessage(e)
         }
+      }
+    }
+    const delToSql = async(account) => {
+      const token = localStorage.getItem("token")
+      const params = {
+        'account': account
+      }
+      const data = await Fetch(Config.Api.delonesql, params, "delete", token)
+      const e = {
+          active: true,
+          message: data.message,
+          color: "is-danger",
+          newtime: 0,
+        }
+      if (data.status == -1) {
+        states.data = []
+        states.total = 0
+        states.page = []
+        localStorage.removeItem("token")
+      }else if (data.status == 1) {
+        ShowMessage(e)
+      }else {
+        states.data = states.data.filter((e) => {
+          return e.account !== account
+        })
+        states.total = states.total - 1
+        const e = {
+          active: true,
+          message: data.message,
+          color: "is-success",
+          newtime: 0,
+        }
+        ShowMessage(e)
       }
     }
 
@@ -486,6 +529,12 @@ export default defineComponent({
           states.page = []
           localStorage.removeItem("token")
         }else if (data.status == 1) {
+          states.data = states.data.filter((el) => {
+            return list.every((el2) => {
+              return el2 !== el.account
+            })
+          })
+          states.checkTemp = []
           states.loading = false
           ShowMessage(e)
         }else {
@@ -513,15 +562,73 @@ export default defineComponent({
             states.arrayModal.datacount = xyz.join("\r\n")
             states.arrayModal.active = true
           }else{
+            states.data = states.data.filter((el) => {
+              return list.every((el2) => {
+                return el2 !== el.account
+              })
+            })
+            states.checkTemp = []
             states.loading = false
             ShowMessage(e)
           }
+        }
+      }else{
+        states.data = states.data.filter((el) => {
+          return list.every((el2) => {
+            return el2 !== el.account
+          })
+        })
+        states.checkTemp = []
+        states.loading = false
+        ShowMessage(e)
+      }
+    }
+
+    const delAllSql = async() => {
+      const list = states.checkTemp
+      const e = {
+          active: true,
+          message: "删除失败",
+          color: "is-danger",
+          newtime: 0,
+        }
+      if (list.length > 0 ) {
+        states.loading = true
+        const token = localStorage.getItem("token")
+        const params = {
+          'list': states.checkTemp
+        }
+        const data = await Fetch(Config.Api.delallsql, params, "DELETE", token)
+        if (data.status == -1) {
+          states.data = []
+          states.total = 0
+          states.page = []
+          localStorage.removeItem("token")
+        }else if (data.status == 0) {
+          states.data = states.data.filter((el) => {
+            return list.every((el2) => {
+              return el2 !== el.account
+            })
+          })
+          states.checkTemp = []
+          states.loading = false
+          const e = {
+            active: true,
+            message: data.message,
+            color: "is-success",
+            newtime: 0,
+          }
+          ShowMessage(e)
+        }else{
+          states.loading = false
+          ShowMessage(e)
         }
       }else{
         states.loading = false
         ShowMessage(e)
       }
     }
+
     const closeArray = () => {
       location.reload()
     }
@@ -544,7 +651,9 @@ export default defineComponent({
       delit,
       getall,
       ShowMessage,
-      closeArray
+      closeArray,
+      delToSql,
+      delAllSql
     }
   },
 })

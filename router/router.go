@@ -22,6 +22,8 @@ func InitRouter(SECRET_KEY, CurrentPath string) *gin.Engine {
 		api.GET("/search", utils.VerifyMiddleware(), controller.GetSearch)
 		api.DELETE("/delone", utils.VerifyMiddleware(), controller.DeleteOne)
 		api.DELETE("/delist", utils.VerifyMiddleware(), controller.DeleteList)
+		api.DELETE("/delonesql", utils.VerifyMiddleware(), controller.DeleteOneSQL)
+		api.DELETE("/delallsql", utils.VerifyMiddleware(), controller.DeleteListSQL)
 		api.POST("/login", controller.Sgin)
 		router.Static("/static", "./upimg")
 	}
