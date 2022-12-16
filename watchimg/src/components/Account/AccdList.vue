@@ -240,13 +240,15 @@ export default defineComponent({
     const makeNumber = (n) =>{
       let x = "0"
       if ((n+"").length >= 9 && n !== 0) {
-        const a = n / 100000000
+        let a = n / 100000000
+        a = a.toFixed(1)
         x = `${a}亿`
       }else if (n === 123) {
         x = "识别错误"
       }else{
         if (n !== 0 ) {
-          const a = n / 10000
+          let a = n / 10000
+          a = a.toFixed(1)
           x = `${a}万`
         }
       }
