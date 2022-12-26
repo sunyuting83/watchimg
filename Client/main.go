@@ -10,7 +10,6 @@ import (
 	"net/http"
 	"os"
 	"runtime"
-	"strconv"
 	"strings"
 	"time"
 	"worldimg/Client/utils"
@@ -74,15 +73,6 @@ func postFile(filename, gold, multiple, exptime string, confYaml *utils.Config) 
 	// return nil
 }
 
-func strToDate(date string) (d int64) {
-	var LOC, _ = time.LoadLocation("Asia/Shanghai")
-	res1, err := time.ParseInLocation("2006/01/02 15:04:05", date, LOC)
-	if err != nil {
-		return 0
-	}
-	return res1.Unix()
-}
-
 // sample usage
 func main() {
 	var (
@@ -110,7 +100,5 @@ func main() {
 		time.Sleep(time.Duration(10) * time.Second)
 		os.Exit(0)
 	}
-	exptimeInt := strToDate(exptime)
-	exptimeStr := strconv.FormatInt(exptimeInt, 10)
-	postFile(fileName, gold, multiple, exptimeStr, confYaml)
+	postFile(fileName, gold, multiple, exptime, confYaml)
 }

@@ -104,12 +104,16 @@ func (datalist *ImgList) Insert() error {
 // UpdateStatus data
 func (datalist *ImgList) UpdateStatus(account string) (update ImgList, err error) {
 	// time.Sleep(time.Duration(100) * time.Millisecond)
+	c := 0
 	if err = Eloquent.First(&update, "account = ?", account).Error; err != nil {
 		return
 	}
 	if err = Eloquent.Model(&update).Updates(&datalist).Error; err != nil {
 		return
 	}
+	sql5 := `Update imageData Set new_status = 0 WHERE account = ` + account
+	row5 := Eloquent.Raw(sql5).Row()
+	row5.Scan(&c)
 	return
 }
 

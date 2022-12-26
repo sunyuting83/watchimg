@@ -161,16 +161,18 @@ func FileHandler(c *gin.Context) {
 	Multiple, _ := strconv.ParseInt(form.Multiple, 10, 64)
 	newTime := nowTime.Unix()
 
-	ExpTimeInt, _ := strconv.ParseInt(form.ExpTime, 10, 64)
+	ExpTimeInt := strToDate(form.ExpTime)
+
+	var newStatus int64 = 0
+
 	var imglist database.ImgList
 	account, err := imglist.GetImgOne(fileNameList[0])
 	imglist.Account = fileNameList[0]
 	imglist.Cover = toDBPath
 	imglist.Today = gold
 	imglist.Multiple = Multiple
-	imglist.NewStatus = 0
+	imglist.NewStatus = newStatus
 	imglist.ExpTime = ExpTimeInt
-	imglist.NewStatus = 0
 
 	timeobj := time.Unix(int64(account.DateTime), 0)
 	olDate := timeobj.Format("20060102")
@@ -207,3 +209,12 @@ func FileHandler(c *gin.Context) {
 // 	}
 // 	return text
 // }
+
+func strToDate(date string) (d int64) {
+	var LOC, _ = time.LoadLocation("Asia/Shanghai")
+	res1, err := time.ParseInLocation("2006/01/02 15:04:05", date, LOC)
+	if err != nil {
+		return 0
+	}
+	return res1.Unix()
+}
