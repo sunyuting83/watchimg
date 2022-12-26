@@ -226,19 +226,23 @@ export default defineComponent({
       states.openerr = e
     }
 
+    const getnum = (num) =>  {
+      const s = num.toString();
+      const result = s.substring(0,s.indexOf(".")+2);
+      return result
+    }
+
     const makeNumber = (n) =>{
       let x = "0"
       if ((n+"").length >= 9 && n !== 0) {
         let a = n / 100000000
-        a = a.toFixed(1)
-        x = `${a}亿`
+        x = `${getnum(a)}亿`
       }else if (n === 123) {
         x = "识别错误"
       }else{
         if (n !== 0 ) {
           let a = n / 10000
-          a = a.toFixed(1)
-          x = `${a}万`
+          x = `${getnum(a)}万`
         }
       }
       return x
