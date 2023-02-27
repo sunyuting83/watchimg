@@ -238,14 +238,19 @@ export default defineComponent({
     }
 
     const getnum = (num) =>  {
-      const s = num.toString();
-      const result = s.substring(0,s.indexOf(".")+2);
+      let result = ""
+      const s = num.toString()
+      if (s.indexOf(".") !== -1) {
+        result = s.substring(0,s.indexOf(".")+2)
+      }else{
+        result = s
+      }
       return result
     }
 
     const makeNumber = (n) =>{
       let x = "0"
-      if ((n+"").length >= 9 && n !== 0) {
+      if (n >= 100000000 && n !== 0) {
         let a = n / 100000000
         x = `${getnum(a)}亿`
       }else if (n === 123) {
